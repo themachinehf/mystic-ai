@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic AI - Fortune Reading</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">✦</span>
+                <span class="logo-text">MYSTIC AI</span>
+            </div>
+            <p class="tagline">AI Fortune Reading · Discover Your Destiny</p>
+        </header>
+
+        <!-- 输入表单区域 -->
+        <section class="input-section" id="inputSection">
+            <div class="card input-card">
+                <h2 class="section-title">Your Information</h2>
+
+                <form id="mysticForm">
+                    <!-- 姓名 -->
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+                    </div>
+
+                    <!-- 性别 -->
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <div class="gender-selector">
+                            <label class="gender-option">
+                                <input type="radio" name="gender" value="male">
+                                <span class="gender-btn">
+                                    <span class="gender-icon">♂</span>
+                                    Male
+                                </span>
+                            </label>
+                            <label class="gender-option">
+                                <input type="radio" name="gender" value="female">
+                                <span class="gender-btn">
+                                    <span class="gender-icon">♀</span>
+                                    Female
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 出生日期 -->
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <div class="date-selector">
+                            <!-- 年份 -->
+                            <select id="birthYear" name="birthYear">
+                                <option value="">Year</option>
+                            </select>
+                            <!-- 月份 -->
+                            <select id="birthMonth" name="birthMonth">
+                                <option value="">Month</option>
+                                <option value="01">Jan</option>
+                                <option value="02">Feb</option>
+                                <option value="03">Mar</option>
+                                <option value="04">Apr</option>
+                                <option value="05">May</option>
+                                <option value="06">Jun</option>
+                                <option value="07">Jul</option>
+                                <option value="08">Aug</option>
+                                <option value="09">Sep</option>
+                                <option value="10">Oct</option>
+                                <option value="11">Nov</option>
+                                <option value="12">Dec</option>
+                            </select>
+                            <!-- 日期 -->
+                            <select id="birthDay" name="birthDay">
+                                <option value="">Day</option>
+                            </select>
+                        </div>
+                        <!-- 隐藏的日期字段 -->
+                        <input type="hidden" id="birthDate" name="birthDate">
+                        <p class="zodiac-hint">Zodiac: <span id="zodiacDisplay">-</span></p>
+                    </div>
+
+                    <!-- 出生时辰 -->
+                    <div class="form-group">
+                        <label>Birth Hour (Chinese Time)</label>
+                        <div class="time-selector">
+                            <select id="birthTime" name="birthTime">
+                                <option value="子">Zi (23:00-01:00)</option>
+                                <option value="丑">Chou (01:00-03:00)</option>
+                                <option value="寅">Yin (03:00-05:00)</option>
+                                <option value="卯">Mao (05:00-07:00)</option>
+                                <option value="辰">Chen (07:00-09:00)</option>
+                                <option value="巳">Si (09:00-11:00)</option>
+                                <option value="午">Wu (11:00-13:00)</option>
+                                <option value="未">Wei (13:00-15:00)</option>
+                                <option value="申">Shen (15:00-17:00)</option>
+                                <option value="酉">You (17:00-19:00)</option>
+                                <option value="戌">Xu (19:00-21:00)</option>
+                                <option value="亥">Hai (21:00-23:00)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 隐藏的星座字段 -->
+                    <input type="hidden" id="zodiac" name="zodiac">
+
+                    <!-- 提交按钮 -->
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span class="btn-text">Reveal My Fortune</span>
+                        <span class="btn-icon">✦</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 加载动画 -->
+        <section class="loading-section" id="loadingSection" style="display: none;">
+            <div class="loading-card">
+                <div class="tarot-spread">
+                    <div class="tarot-card flipping"></div>
+                    <div class="tarot-card flipping delay-1"></div>
+                    <div class="tarot-card flipping delay-2"></div>
+                </div>
+                <p class="loading-text">The stars are aligning...</p>
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 结果展示区域 -->
+        <section class="result-section" id="resultSection" style="display: none;">
+            <!-- 塔罗牌展示 -->
+            <div class="tarot-reveal">
+                <div class="tarot-card final-card" id="tarotCard">
+                    <div class="card-front">
+                        <span class="tarot-symbol">✦</span>
+                    </div>
+                    <div class="card-back">
+                        <div class="tarot-image" id="tarotImage"></div>
+                        <p class="tarot-name" id="tarotName"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 结果卡片 -->
+            <div class="result-cards">
+                <!-- 综合性格 -->
+                <div class="result-card" id="personalityCard">
+                    <div class="card-header">
+                        <span class="card-icon">✦</span>
+                        <h3>Personality Analysis</h3>
+                    </div>
+                    <div class="card-content" id="personalityContent"></div>
+                </div>
+
+                <!-- 今日运势 -->
+                <div class="result-card" id="todayCard">
+                    <div class="card-header">
+                        <span class="card-icon">☀</span>
+                        <h3>Today's Horoscope</h3>
+                    </div>
+                    <div class="card-content" id="todayContent"></div>
+                </div>
+
+                <!-- 本周运势 -->
+                <div class="result-card" id="weekCard">
+                    <div class="card-header">
+                        <span class="card-icon">☾</span>
+                        <h3>This Week</h3>
+                    </div>
+                    <div class="card-content" id="weekContent"></div>
+                </div>
+
+                <!-- 本月运势 -->
+                <div class="result-card" id="monthCard">
+                    <div class="card-header">
+                        <span class="card-icon">★</span>
+                        <h3>This Month</h3>
+                    </div>
+                    <div class="card-content" id="monthContent"></div>
+                </div>
+
+                <!-- 事业财运 -->
+                <div class="result-card wide" id="careerCard">
+                    <div class="card-header">
+                        <span class="card-icon">◆</span>
+                        <h3>Career · Love · Wealth</h3>
+                    </div>
+                    <div class="card-content" id="careerContent"></div>
+                </div>
+            </div>
+
+            <!-- 重新测试按钮 -->
+            <button class="restart-btn" id="restartBtn">
+                <span class="btn-icon">↺</span>
+                Read Again
+            </button>
+        </section>
+
+        <!-- 支付/打赏区域 -->
+        <div class="payment-section" id="paymentSection">
+            <div class="payment-card">
+                <div class="payment-header">
+                    <span class="payment-icon">☕</span>
+                    <h3>Support This Project</h3>
+                </div>
+                <p class="payment-desc">Enjoy the reading? Buy me a coffee!</p>
+                <div class="payment-links">
+                    <a href="https://patreon.com/" target="_blank" class="payment-btn patreon">
+                        <span class="btn-icon">◎</span>
+                        Become a Patron
+                    </a>
+                    <a href="https://buymeacoffee.com/" target="_blank" class="payment-btn kofi">
+                        <span class="btn-icon">☕</span>
+                        Buy Me a Coffee
+                    </a>
+                    <a href="https://ko-fi.com/" target="_blank" class="payment-btn kofi">
+                        <span class="btn-icon">♥</span>
+                        Ko-fi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
