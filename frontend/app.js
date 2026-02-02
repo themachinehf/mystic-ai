@@ -1,14 +1,30 @@
+// ========== 创建星星背景 ==========
+function createStars() {
+    const container = document.getElementById('stars');
+    const starCount = 100;
+
+    for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        star.style.animationDuration = (2 + Math.random() * 2) + 's';
+        container.appendChild(star);
+    }
+}
+
 // ========== 粒子背景 ==========
 function createParticles() {
     const container = document.getElementById('particles');
-    const particleCount = 40;
+    const particleCount = 30;
 
     for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 20 + 's';
-        particle.style.animationDuration = (15 + Math.random() * 15) + 's';
+        particle.style.animationDelay = Math.random() * 25 + 's';
+        particle.style.animationDuration = (20 + Math.random() * 10) + 's';
         container.appendChild(particle);
     }
 }
@@ -93,43 +109,118 @@ function updateZodiac() {
 
 // ========== 显示加载动画 ==========
 function showLoading() {
-    document.getElementById('inputSection').style.display = 'none';
-    document.getElementById('loadingSection').style.display = 'block';
+    const inputCard = document.getElementById('inputCard');
+    const loadingContainer = document.getElementById('loadingContainer');
+    
+    inputCard.style.display = 'none';
+    loadingContainer.style.display = 'block';
+    
+    // 模拟加载时间
+    setTimeout(() => {
+        showResults();
+    }, 3500);
 }
 
 // ========== 显示结果 ==========
 function showResults(aiReading) {
-    document.getElementById('loadingSection').style.display = 'none';
-    document.getElementById('resultSection').style.display = 'block';
-    document.getElementById('paymentSection').style.display = 'block';
-
+    const loadingContainer = document.getElementById('loadingContainer');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const footerSection = document.getElementById('footerSection');
+    
+    loadingContainer.style.display = 'none';
+    resultsContainer.style.display = 'block';
+    footerSection.style.display = 'block';
+    
+    // 塔罗牌翻转动画
     setTimeout(() => {
         const tarotCard = document.getElementById('tarotCard');
         tarotCard.classList.add('revealed');
-
+        
+        // 随机塔罗牌
         const tarotSymbols = ['🌟', '🌙', '☀️', '⚡', '🌊', '🔥'];
         const tarotNames = ['The Star', 'The Moon', 'The Sun', 'Strength', 'Wheel of Fortune', 'Temperance'];
-
+        
         const randomIndex = Math.floor(Math.random() * tarotSymbols.length);
         document.getElementById('tarotImage').textContent = tarotSymbols[randomIndex];
         document.getElementById('tarotName').textContent = tarotNames[randomIndex];
-    }, 500);
-
-    // 如果有 AI 解读，显示它
+    }, 600);
+    
+    // 填充结果
     if (aiReading) {
         document.getElementById('personalityContent').innerHTML = aiReading;
+    } else {
+        fillDefaultResults();
     }
+    
+    // 结果卡片入场动画
+    animateResultCards();
+}
 
-    // 添加结果卡片动画
+// ========== 默认结果 ==========
+function fillDefaultResults() {
+    const name = document.getElementById('name').value || 'You';
+    
+    document.getElementById('personalityContent').innerHTML = `
+        <p>Based on your birth information, ${name}, AI has analyzed your personality:</p>
+        <p style="margin-top: 16px;">🔮 <strong>Core Traits:</strong> You are a creative soul with exceptional intuition and deep insight.</p>
+        <p style="margin-top: 12px;">💫 <strong>Style:</strong> You think deeply and often find inspiration in moments of solitude.</p>
+        <p style="margin-top: 12px;">🌟 <strong>Relationships:</strong> You value meaningful connections. Though your circle is small, each bond is genuine and lasting.</p>
+    `;
+    
+    document.getElementById('todayContent').innerHTML = `
+        <p>☀️ <strong>Overall:</strong> ★★★★☆</p>
+        <p style="margin-top: 12px;">💼 <strong>Career:</strong> Excellent day for handling important matters.</p>
+        <p style="margin-top: 12px;">💕 <strong>Love:</strong> Unexpected surprises await. Stay open-minded.</p>
+        <p style="margin-top: 12px;">💰 <strong>Wealth:</strong> Stable finances. Conservative investments recommended.</p>
+    `;
+    
+    document.getElementById('weekContent').innerHTML = `
+        <p>☾ <strong>Overall:</strong> ★★★★☆</p>
+        <p style="margin-top: 12px;">📅 This week brings adjustments and breakthroughs. Perfect for planning new ventures.</p>
+        <p style="margin-top: 12px;">⚠️ Note: You may feel tired by the weekend. Rest when needed.</p>
+    `;
+    
+    document.getElementById('monthContent').innerHTML = `
+        <p>★ <strong>Overall:</strong> ★★★★★</p>
+        <p style="margin-top: 12px;">🎯 This is your lucky month! Significant improvements in career, love, and finances are possible.</p>
+        <p style="margin-top: 12px;">🔑 Advice: Seize opportunities and try new things.</p>
+    `;
+    
+    document.getElementById('careerContent').innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">💼</div>
+                <h4 style="margin-bottom: 10px; color: var(--gold); font-size: 0.85rem;">Career</h4>
+                <p style="font-size: 0.8rem; line-height: 1.6;">Promotions and raises are possible. Be proactive and showcase your abilities.</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">💕</div>
+                <h4 style="margin-bottom: 10px; color: var(--gold); font-size: 0.85rem;">Love</h4>
+                <p style="font-size: 0.8rem; line-height: 1.6;">Singles may find their match. Couples will experience deeper connection.</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">💰</div>
+                <h4 style="margin-bottom: 10px; color: var(--gold); font-size: 0.85rem;">Wealth</h4>
+                <p style="font-size: 0.8rem; line-height: 1.6;">Financial growth continues. Investment is favorable, but avoid impulsive purchases.</p>
+            </div>
+        </div>
+    `;
+}
+
+// ========== 结果卡片入场动画 ==========
+function animateResultCards() {
     const cards = document.querySelectorAll('.result-card');
+    
     cards.forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(30px)';
+        
         setTimeout(() => {
-            card.style.transition = 'all 0.6s ease';
+            card.classList.add('animate-in');
+            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
-        }, index * 200);
+        }, index * 150 + 800);
     });
 }
 
@@ -183,38 +274,82 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
         const result = await callAIAPI(formData);
         
         if (result.success && result.reading) {
-            showResults(result.reading);
-        } else {
-            // 如果 API 失败，使用默认结果
-            showResults(null);
+            // 如果有 AI 解读，可以更新显示
+            console.log('AI Reading:', result.reading);
         }
     } catch (error) {
         console.error('Error:', error);
-        // API 失败时显示默认结果
-        showResults(null);
+        // API 失败时显示默认结果（已在 showResults 中处理）
     }
 });
 
 // ========== 重新测试 ==========
 document.getElementById('restartBtn').addEventListener('click', function() {
+    // 重置表单
     document.getElementById('mysticForm').reset();
     document.getElementById('zodiacDisplay').textContent = '-';
-
-    document.getElementById('resultSection').style.display = 'none';
-    document.getElementById('paymentSection').style.display = 'none';
-    document.getElementById('inputSection').style.display = 'block';
-
-    document.getElementById('tarotCard').classList.remove('revealed');
+    
+    // 隐藏结果，显示输入表单
+    const resultsContainer = document.getElementById('resultsContainer');
+    const footerSection = document.getElementById('footerSection');
+    const inputCard = document.getElementById('inputCard');
+    const tarotCard = document.getElementById('tarotCard');
+    
+    resultsContainer.style.display = 'none';
+    footerSection.style.display = 'none';
+    inputCard.style.display = 'block';
+    
+    // 移除塔罗牌翻转状态
+    tarotCard.classList.remove('revealed');
+    
+    // 滚动到顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 // ========== 监听日期变化 ==========
 document.getElementById('birthMonth').addEventListener('change', updateZodiac);
 document.getElementById('birthDay').addEventListener('change', updateZodiac);
 
+// ========== 复制钱包地址 ==========
+const copyBtn = document.getElementById('copyBtn');
+const walletAddress = '0x44B82c81d3f5c712ACFaf3C6e760779A41b2ACE6';
+
+if (copyBtn) {
+    copyBtn.addEventListener('click', async function() {
+        try {
+            await navigator.clipboard.writeText(walletAddress);
+            
+            // 复制成功反馈
+            const originalIcon = this.innerHTML;
+            this.innerHTML = '<span style="color: #22c55e;">✓</span>';
+            this.style.borderColor = '#22c55e';
+            
+            setTimeout(() => {
+                this.innerHTML = originalIcon;
+                this.style.borderColor = '';
+            }, 2000);
+        } catch (err) {
+            // 降级方案
+            const textArea = document.createElement('textarea');
+            textArea.value = walletAddress;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            this.innerHTML = '<span style="color: #22c55e;">✓</span>';
+            setTimeout(() => {
+                this.innerHTML = '<span class="copy-icon">📋</span>';
+            }, 2000);
+        }
+    });
+}
+
 // ========== 初始化 ==========
 document.addEventListener('DOMContentLoaded', function() {
+    createStars();
     createParticles();
     initYearSelector();
     initDaySelector();
-    console.log('✨ Mystic AI Ready');
+    console.log('✨ Mystic AI Ready - Version 2.0');
 });
