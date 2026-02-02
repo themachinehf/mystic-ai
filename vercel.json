@@ -1,7 +1,6 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "echo 'No build needed'",
   "outputDirectory": "frontend",
-  "framework": "none",
   "rewrites": [
     {
       "source": "/api/(.*)",
