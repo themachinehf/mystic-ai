@@ -148,6 +148,13 @@ function showResults(aiReading) {
     // 填充结果
     if (aiReading) {
         document.getElementById('personalityContent').innerHTML = aiReading;
+        // 保存到历史记录
+        saveReadingHistory({
+            name: formData.name,
+            zodiac: formData.zodiac,
+            reading: aiReading,
+            date: new Date().toISOString()
+        });
     } else {
         fillDefaultResults();
     }
@@ -404,4 +411,20 @@ function saveEmail(email) {
         emails.push(email);
         localStorage.setItem('mystic_subscribers', JSON.stringify(emails));
     }
+}
+
+// ========== 历史记录 ==========
+function saveReadingHistory(record) {
+    let history = JSON.parse(localStorage.getItem('mystic_history') || '[]');
+    history.unshift(record);
+    if (history.length > 10) history = history.slice(0, 10);
+    localStorage.setItem('mystic_history', JSON.stringify(history));
+}
+
+function getReadingHistory() {
+    return JSON.parse(localStorage.getItem('mystic_history') || '[]');
+}
+
+function clearReadingHistory() {
+    localStorage.removeItem('mystic_history');
 }
