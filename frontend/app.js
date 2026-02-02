@@ -352,4 +352,56 @@ document.addEventListener('DOMContentLoaded', function() {
     initYearSelector();
     initDaySelector();
     console.log('✨ Mystic AI Ready - Version 2.0');
+    
+    // 初始化邮件订阅
+    initNewsletter();
 });
+
+// ========== 邮件订阅 ==========
+function initNewsletter() {
+    const form = document.getElementById('newsletterForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('newsletterEmail').value;
+        const btn = form.querySelector('.newsletter-btn');
+        
+        if (!email) return;
+        
+        // 禁用按钮
+        btn.disabled = true;
+        btn.innerHTML = '<span>Subscribing...</span>';
+        
+        // 模拟订阅（实际应该发送到后端）
+        try {
+            // 这里可以添加实际的 API 调用
+            // await fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email }) });
+            
+            // 模拟延迟
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 显示成功
+            const card = document.querySelector('.newsletter-card');
+            card.classList.add('success');
+            
+            // 保存到 localStorage
+            saveEmail(email);
+            
+            console.log('📧 Email subscribed:', email);
+        } catch (error) {
+            console.error('Subscription error:', error);
+            btn.disabled = false;
+            btn.innerHTML = '<span>Subscribe</span><span class="btn-icon">→</span>';
+        }
+    });
+}
+
+function saveEmail(email) {
+    let emails = JSON.parse(localStorage.getItem('mystic_subscribers') || '[]');
+    if (!emails.includes(email)) {
+        emails.push(email);
+        localStorage.setItem('mystic_subscribers', JSON.stringify(emails));
+    }
+}
