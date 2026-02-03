@@ -427,4 +427,88 @@ function getReadingHistory() {
 
 function clearReadingHistory() {
     localStorage.removeItem('mystic_history');
+    renderHistory();
+    updateHistoryCount();
 }
+
+// ========== 历史记录 UI ==========
+function toggleHistory() {
+    const panel = document.getElementById('historyPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    renderHistory();
+}
+
+function renderHistory() {
+    const historyList = document.getElementById('historyList');
+    const history = getReadingHistory();
+    
+    if (history.length === 0) {
+        historyList.innerHTML = '<p class="empty-history">No readings yet</p>';
+        return;
+    }
+    
+    historyList.innerHTML = history.map((item, index) => {
+        const date = new Date(item.date);
+        const dateStr = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        // 清理 HTML 标签获取纯文本预览
+        const preview = item.reading.replace(/<[^>]*>/g, '').substring(0, 100);
+        
+        return `
+            <div class="history-item" onclick="viewHistoryItem(${index})">
+                <div class="history-item-header">
+                    <span class="history-item-name">${escapeHtml(item.name)}</span>
+                    <span class="history-item-date">${dateStr}</span>
+                </div>
+                <span class="history-item-zodiac">${item.zodiac}</span>
+                <p class="history-item-preview">${preview}...</p>
+            </div>
+        `;
+    }).join('');
+}
+
+function viewHistoryItem(index) {
+    const history = getReadingHistory();
+    if (history[index]) {
+        const item = history[index];
+        // 显示历史记录的解读内容
+        showResults(item.reading);
+        // 隐藏历史记录面板
+        document.getElementById('historyPanel').style.display = 'none';
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateHistoryCount() {
+    const history = getReadingHistory();
+    document.getElementById('historyCount').textContent = history.length;
+}
+
+// ========== 初始化 ==========
+document.addEventListener('DOMContentLoaded', function() {
+    createStars();
+    createParticles();
+    initYearSelector();
+    initDaySelector();
+    
+    // 历史记录事件
+    document.getElementById('historyToggleBtn').addEventListener('click', toggleHistory);
+    document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+        if (confirm('Clear all reading history?')) {
+            clearReadingHistory();
+        }
+    });
+    
+    updateHistoryCount();
+    console.log('✨ Mystic AI Ready - Version 2.0');
+});
