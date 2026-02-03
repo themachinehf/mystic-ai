@@ -9,12 +9,6 @@ const translations = {
         genderLabel: 'Gender',
         male: 'Male',
         female: 'Female',
-        birthDateLabel: 'Date of Birth',
-        year: 'Year',
-        month: 'Month',
-        day: 'Day',
-        zodiacLabel: 'Zodiac',
-        birthTimeLabel: 'Birth Hour (Chinese)',
         submitBtn: 'Reveal My Fortune',
         personalityTitle: 'Personality Analysis',
         todayTitle: "Today's Horoscope",
@@ -30,12 +24,6 @@ const translations = {
         genderLabel: '性别',
         male: '男',
         female: '女',
-        birthDateLabel: '出生日期',
-        year: '年',
-        month: '月',
-        day: '日',
-        zodiacLabel: '星座',
-        birthTimeLabel: '出生时辰',
         submitBtn: '揭示命运',
         personalityTitle: '性格分析',
         todayTitle: '今日运势',
@@ -50,39 +38,31 @@ function switchLanguage(lang) {
     currentLang = lang;
     const t = translations[lang];
     
-    // 更新按钮状态
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.lang === lang);
     });
     
-    // 更新表单文本
     document.querySelector('.section-title').textContent = t.title;
     document.querySelector('label[for="name"]').textContent = t.nameLabel;
     document.getElementById('name').placeholder = t.namePlaceholder;
-    document.querySelectorAll('.form-group label')[0].nextElementSibling.querySelector('label').textContent = t.genderLabel;
     
-    // 更新性别选项
     const genderBtns = document.querySelectorAll('.gender-btn span:last-child');
     if (genderBtns.length >= 2) {
         genderBtns[0].textContent = t.male;
         genderBtns[1].textContent = t.female;
     }
     
-    // 更新结果卡片标题
     document.querySelector('#personalityCard h3').textContent = t.personalityTitle;
     document.querySelector('#todayCard h3').textContent = t.todayTitle;
     document.querySelector('#weekCard h3').textContent = t.weekTitle;
     document.querySelector('#monthCard h3').textContent = t.monthTitle;
     document.querySelector('#careerCard h3').textContent = t.careerTitle;
     
-    // 更新加载文字
-    const loadingTexts = t.loadingTexts;
     const loadingTextEl = document.getElementById('loadingText');
     if (loadingTextEl) {
-        loadingTextEl.innerHTML = loadingTexts.map(txt => `<span style="display:block;text-align:center;">${txt}</span>`).join('');
+        loadingTextEl.innerHTML = t.loadingTexts.map(txt => `<span style="display:block;text-align:center;">${txt}</span>`).join('');
     }
     
-    // 保存语言设置
     localStorage.setItem('mystic_lang', lang);
 }
 
@@ -524,6 +504,67 @@ if (copyBtn) {
     });
 }
 
+// ========== 初始化 ==========
+document.addEventListener('DOMContentLoaded', function() {
+    createStars();
+    createParticles();
+    initYearSelector();
+    initDaySelector();
+    console.log('✨ Mystic AI Ready - Version 2.0');
+    
+    // 初始化邮件订阅
+    initNewsletter();
+});
+
+// ========== 邮件订阅 ==========
+function initNewsletter() {
+    const form = document.getElementById('newsletterForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('newsletterEmail').value;
+        const btn = form.querySelector('.newsletter-btn');
+        
+        if (!email) return;
+        
+        // 禁用按钮
+        btn.disabled = true;
+        btn.innerHTML = '<span>Subscribing...</span>';
+        
+        // 模拟订阅（实际应该发送到后端）
+        try {
+            // 这里可以添加实际的 API 调用
+            // await fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email }) });
+            
+            // 模拟延迟
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 显示成功
+            const card = document.querySelector('.newsletter-card');
+            card.classList.add('success');
+            
+            // 保存到 localStorage
+            saveEmail(email);
+            
+            console.log('📧 Email subscribed:', email);
+        } catch (error) {
+            console.error('Subscription error:', error);
+            btn.disabled = false;
+            btn.innerHTML = '<span>Subscribe</span><span class="btn-icon">→</span>';
+        }
+    });
+}
+
+function saveEmail(email) {
+    let emails = JSON.parse(localStorage.getItem('mystic_subscribers') || '[]');
+    if (!emails.includes(email)) {
+        emails.push(email);
+        localStorage.setItem('mystic_subscribers', JSON.stringify(emails));
+    }
+}
+
 // ========== 历史记录 ==========
 function saveReadingHistory(record) {
     let history = JSON.parse(localStorage.getItem('mystic_history') || '[]');
@@ -568,6 +609,7 @@ function renderHistory() {
             hour: '2-digit',
             minute: '2-digit'
         });
+        // 清理 HTML 标签获取纯文本预览
         const preview = item.reading.replace(/<[^>]*>/g, '').substring(0, 100);
         
         return `
@@ -591,8 +633,6 @@ function viewHistoryItem(index) {
         showResults(item.reading);
         // 隐藏历史记录面板
         document.getElementById('historyPanel').style.display = 'none';
-        // 显示返回按钮
-        document.getElementById('backBtn').style.display = 'flex';
     }
 }
 
@@ -604,8 +644,7 @@ function escapeHtml(text) {
 
 function updateHistoryCount() {
     const history = getReadingHistory();
-    const countEl = document.getElementById('historyCount');
-    if (countEl) countEl.textContent = history.length;
+    document.getElementById('historyCount').textContent = history.length;
 }
 
 // ========== 初始化 ==========
@@ -614,36 +653,16 @@ document.addEventListener('DOMContentLoaded', function() {
     createParticles();
     initYearSelector();
     initDaySelector();
-    console.log('✨ Mystic AI Ready - Version 2.0');
     
-    // 初始化邮件订阅
-    initNewsletter();
+    // 历史记录事件
+    document.getElementById('historyToggleBtn').addEventListener('click', toggleHistory);
+    document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+        if (confirm('Clear all reading history?')) {
+            clearReadingHistory();
+        }
+    });
     
-    // 历史记录事件（加 null 检查）
-    const historyToggleBtn = document.getElementById('historyToggleBtn');
-    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-    if (historyToggleBtn) {
-        historyToggleBtn.addEventListener('click', toggleHistory);
-    }
-    if (clearHistoryBtn) {
-        clearHistoryBtn.addEventListener('click', function() {
-            if (confirm('Clear all reading history?')) {
-                clearReadingHistory();
-            }
-        });
-    }
     updateHistoryCount();
-    
-    // 返回按钮事件
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', function() {
-            // 隐藏返回按钮
-            this.style.display = 'none';
-            // 打开历史记录面板
-            toggleHistory();
-        });
-    }
     
     // 语言切换初始化
     const savedLang = localStorage.getItem('mystic_lang') || 'en';
@@ -651,4 +670,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => switchLanguage(btn.dataset.lang));
     });
+    
+    console.log('✨ Mystic AI Ready - Version 2.0');
 });
