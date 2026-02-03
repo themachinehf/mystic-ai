@@ -472,6 +472,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化邮件订阅
     initNewsletter();
+    
+    // 历史记录事件
+    document.getElementById('historyToggleBtn').addEventListener('click', toggleHistory);
+    document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+        if (confirm('Clear all reading history?')) {
+            clearReadingHistory();
+        }
+    });
+    
+    updateHistoryCount();
 });
 
 // ========== 邮件订阅 ==========
@@ -605,23 +615,4 @@ function updateHistoryCount() {
     document.getElementById('historyCount').textContent = history.length;
 }
 
-// ========== 初始化 ==========
-document.addEventListener('DOMContentLoaded', function() {
-    createStars();
-    createParticles();
-    initYearSelector();
-    initDaySelector();
-    
-    // 历史记录事件
-    document.getElementById('historyToggleBtn').addEventListener('click', toggleHistory);
-    document.getElementById('clearHistoryBtn').addEventListener('click', function() {
-        if (confirm('Clear all reading history?')) {
-            clearReadingHistory();
-        }
-    });
-    
-    updateHistoryCount();
-    console.log('✨ Mystic AI Ready - Version 2.0');
-}
-
-// 文件结束
+})
