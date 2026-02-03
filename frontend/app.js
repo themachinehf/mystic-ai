@@ -473,13 +473,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化邮件订阅
     initNewsletter();
     
-    // 历史记录事件
-    document.getElementById('historyToggleBtn').addEventListener('click', toggleHistory);
-    document.getElementById('clearHistoryBtn').addEventListener('click', function() {
-        if (confirm('Clear all reading history?')) {
-            clearReadingHistory();
-        }
-    });
+    // 历史记录事件（加 null 检查）
+    const historyToggleBtn = document.getElementById('historyToggleBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    if (historyToggleBtn) {
+        historyToggleBtn.addEventListener('click', toggleHistory);
+    }
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', function() {
+            if (confirm('Clear all reading history?')) {
+                clearReadingHistory();
+            }
+        });
+    }
     
     updateHistoryCount();
 });
