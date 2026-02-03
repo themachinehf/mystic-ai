@@ -490,17 +490,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 返回按钮
     const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', function() {
-            this.style.display = 'none';
-            toggleHistory();
-        });
-    }
-    
-    // 初始化月份和日选项
-    const monthSelect = document.getElementById('birthMonth');
-    if (monthSelect) {
-        monthSelect.addEventListener('change', updateZodiac);
     
     // 初始化月份和日选项
     const monthSelect = document.getElementById('birthMonth');
