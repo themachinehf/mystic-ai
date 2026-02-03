@@ -252,29 +252,100 @@ function showResults(aiReading) {
 function parseReadingContent(text) {
     if (!text) return {};
     
-    // 尝试按模式匹配内容
-    const patterns = {
-        personality: /性格分析[:：\s]*([\s\S]*?)(今日运势|本周运势|本月运势|事业|$)/i,
-        today: /今日运势[:：\s]*([\s\S]*?)(性格分析|本周运势|本月运势|事业|$)/i,
-        week: /本周运势[:：\s]*([\s\S]*?)(性格分析|今日运势|本月运势|事业|$)/i,
-        month: /本月运势[:：\s]*([\s\S]*?)(性格分析|今日运势|本周运势|事业|$)/i,
-        career: /事业.*?财运[:：\s]*([\s\S]*?)(性格分析|今日运势|本周运势|本月运势|$)/i
+    // 如果内容包含 HTML 标签，先清理
+    text = text.replace(/<[^>]*>/g, ' ');
+    
+    // 按常见分隔符分割
+    const sections = text.split(/\n\n+/).filter(s => s.trim());
+    
+    const result = {
+        personality: '',
+        today: '',
+        week: '',
+        month: '',
+        career: ''
     };
     
-    const result = {};
-    for (const key in patterns) {
-        const match = text.match(patterns[key]);
-        if (match && match[1]) {
-            result[key] = match[1].trim();
+    // 中文标题关键词
+    const zhKeywords = {
+        personality: ['性格', 'Personality'],
+        today: ['今日', "Today's", '今日运势'],
+        week: ['本周', "This Week", '本周运势'],
+        month: ['本月', "This Month", '本月运势'],
+        career: ['事业', 'Career', '爱情', 'Love', '财运', 'Wealth']
+    };
+    
+    // 英文标题关键词
+    const enKeywords = {
+        personality: ['Personality'],
+        today: ["Today's Horoscope"],
+        week: ["This Week"],
+        month: ["This Month"],
+        career: ['Career', 'Love', 'Wealth']
+    };
+    
+    // 遍历每个段落，尝试识别属于哪个部分
+    let currentSection = 'personality';
+    let collected = { personality: [], today: [], week: [], month: [], career: [] };
+    
+    for (const section of sections) {
+        const lower = section.toLowerCase();
+        let matched = false;
+        
+        // 检查是否匹配某个标题
+        for (const key in zhKeywords) {
+            for (const kw of zhKeywords[key]) {
+                if (lower.includes(kw.toLowerCase())) {
+                    currentSection = key;
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) break;
+        }
+        
+        // 如果是新的部分开头，跳过标题行
+        if (matched) {
+            const lines = section.split('\n');
+            const contentLines = lines.filter(l => !isTitleLine(l));
+            if (contentLines.length > 0) {
+                collected[currentSection].push(contentLines.join('\n'));
+            }
+        } else {
+            // 如果内容比较长，也收集到当前部分
+            if (section.length > 50) {
+                collected[currentSection].push(section);
+            }
         }
     }
     
-    // 如果解析失败，返回原始文本到性格分析
-    if (Object.keys(result).length === 0) {
-        result.personality = text;
-    }
+    // 组装结果
+    result.personality = collected.personality.join('\n\n') || text;
+    result.today = collected.today.join('\n\n');
+    result.week = collected.week.join('\n\n');
+    result.month = collected.month.join('\n\n');
+    result.career = collected.career.join('\n\n');
+    
+    // 如果某个部分为空，用默认值
+    const t = i18nData[currentLang];
+    if (!result.today) result.today = `<p>${t?.loadingTexts?.[0] || 'Loading...'}</p>`;
+    if (!result.week) result.week = `<p>${t?.loadingTexts?.[1] || 'Loading...'}</p>`;
+    if (!result.month) result.month = `<p>${t?.loadingTexts?.[2] || 'Loading...'}</p>`;
+    if (!result.career) result.career = `<p>${t?.loadingTexts?.[3] || 'Loading...'}</p>`;
     
     return result;
+}
+
+// 判断一行是否是标题行
+function isTitleLine(line) {
+    const titlePatterns = [
+        /^【[^】]+】/,
+        /^[一二三四五六七八九十]+[\s:：]/,
+        /^[A-Z][a-z]+(\s+[A-Z][a-z]+)*[\s:：]/,
+        /^\*\*[^*]+\*\*/,
+        /^[◆☀☾★✦]+/
+    ];
+    return titlePatterns.some(p => p.test(line.trim()));
 }
 
 // ========== 默认结果 ==========
