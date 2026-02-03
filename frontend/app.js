@@ -281,12 +281,20 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
         const result = await callAIAPI(formData);
         
         if (result.success && result.reading) {
-            // 如果有 AI 解读，可以更新显示
-            console.log('AI Reading:', result.reading);
+            // 保存到历史记录
+            saveReadingHistory({
+                name: formData.name,
+                zodiac: formData.zodiac,
+                reading: result.reading,
+                date: new Date().toISOString()
+            });
+            // 显示结果（包含历史记录保存）
+            showResults(result.reading);
         }
     } catch (error) {
         console.error('Error:', error);
-        // API 失败时显示默认结果（已在 showResults 中处理）
+        // API 失败时显示默认结果
+        showResults();
     }
 });
 
