@@ -9,13 +9,39 @@ const translations = {
         genderLabel: 'Gender',
         male: 'Male',
         female: 'Female',
+        birthDateLabel: 'Date of Birth',
+        yearLabel: 'Year',
+        monthLabel: 'Month',
+        dayLabel: 'Day',
+        zodiacLabel: 'Zodiac',
+        birthTimeLabel: 'Birth Hour (Chinese)',
         submitBtn: 'Reveal My Fortune',
         personalityTitle: 'Personality Analysis',
         todayTitle: "Today's Horoscope",
         weekTitle: 'This Week',
         monthTitle: 'This Month',
         careerTitle: 'Career · Love · Wealth',
-        loadingTexts: ['The stars are aligning...', 'Consulting the ancient wisdom...', 'Reading your celestial chart...', 'Weaving your fate...']
+        loadingTexts: ['The stars are aligning...', 'Consulting the ancient wisdom...', 'Reading your celestial chart...', 'Weaving your fate...'],
+        // History
+        historyTitle: 'Reading History',
+        historyEmpty: 'No readings yet',
+        historyClear: 'Clear All',
+        historyBack: 'Back to History',
+        // Newsletter
+        newsletterTitle: 'Stay Updated',
+        newsletterSubtitle: 'Get notified about new readings',
+        newsletterPlaceholder: 'your@email.com',
+        newsletterBtn: 'Subscribe',
+        newsletterNote: 'We respect your privacy',
+        // Donate
+        donateTitle: 'Support This Reading',
+        donateSubtitle: 'If this resonated with you, consider a tip',
+        donateLabel: 'Ethereum (ERC-20)',
+        donateNote: 'Your support keeps the stars aligned',
+        // Misc
+        zodiacDisplay: 'Zodiac',
+        alertFields: 'Please fill in all fields',
+        alertClearHistory: 'Clear all reading history?'
     },
     zh: {
         title: '填写您的信息',
@@ -24,13 +50,39 @@ const translations = {
         genderLabel: '性别',
         male: '男',
         female: '女',
+        birthDateLabel: '出生日期',
+        yearLabel: '年',
+        monthLabel: '月',
+        dayLabel: '日',
+        zodiacLabel: '星座',
+        birthTimeLabel: '出生时辰',
         submitBtn: '揭示命运',
         personalityTitle: '性格分析',
         todayTitle: '今日运势',
         weekTitle: '本周运势',
         monthTitle: '本月运势',
         careerTitle: '事业 · 爱情 · 财运',
-        loadingTexts: ['星辰正在排列...', '探寻古老智慧...', '解读你的星盘...', '编织你的命运...']
+        loadingTexts: ['星辰正在排列...', '探寻古老智慧...', '解读你的星盘...', '编织你的命运...'],
+        // History
+        historyTitle: '历史记录',
+        historyEmpty: '暂无解读记录',
+        historyClear: '清空',
+        historyBack: '返回历史',
+        // Newsletter
+        newsletterTitle: '订阅更新',
+        newsletterSubtitle: '获取最新解读通知',
+        newsletterPlaceholder: 'your@email.com',
+        newsletterBtn: '订阅',
+        newsletterNote: '我们尊重您的隐私',
+        // Donate
+        donateTitle: '支持我们',
+        donateSubtitle: '如果对您有启发，欢迎打赏',
+        donateLabel: 'ETH (ERC-20)',
+        donateNote: '您的支持是我们前进的动力',
+        // Misc
+        zodiacDisplay: '星座',
+        alertFields: '请填写完整信息',
+        alertClearHistory: '确定清空所有历史记录？'
     }
 };
 
@@ -42,9 +94,16 @@ function switchLanguage(lang) {
         btn.classList.toggle('active', btn.dataset.lang === lang);
     });
     
+    // 表单标题
     document.querySelector('.section-title').textContent = t.title;
+    
+    // 名字
     document.querySelector('label[for="name"]').textContent = t.nameLabel;
     document.getElementById('name').placeholder = t.namePlaceholder;
+    
+    // 性别
+    const genderLabel = document.querySelectorAll('.form-group label')[1];
+    if (genderLabel) genderLabel.textContent = t.genderLabel;
     
     const genderBtns = document.querySelectorAll('.gender-btn span:last-child');
     if (genderBtns.length >= 2) {
@@ -52,17 +111,93 @@ function switchLanguage(lang) {
         genderBtns[1].textContent = t.female;
     }
     
+    // 出生日期
+    const birthDateLabel = document.querySelectorAll('.form-group label')[2];
+    if (birthDateLabel) birthDateLabel.textContent = t.birthDateLabel;
+    
+    // 年月日选项
+    const yearOption = document.querySelector('#birthYear option');
+    if (yearOption) yearOption.textContent = t.yearLabel;
+    
+    const dayOption = document.querySelector('#birthDay option');
+    if (dayOption) dayOption.textContent = t.dayLabel;
+    
+    // 星座显示
+    const zodiacDisplay = document.querySelector('.zodiac-display');
+    if (zodiacDisplay) zodiacDisplay.innerHTML = `${t.zodiacDisplay}: <span id="zodiacDisplay">-</span>`;
+    
+    // 出生时辰
+    const birthTimeLabel = document.querySelectorAll('.form-group label')[4];
+    if (birthTimeLabel) birthTimeLabel.textContent = t.birthTimeLabel;
+    
+    // 提交按钮
+    const submitBtnText = document.querySelector('.submit-btn .btn-text span:first-child');
+    if (submitBtnText) submitBtnText.textContent = t.submitBtn;
+    
+    // 结果卡片标题
     document.querySelector('#personalityCard h3').textContent = t.personalityTitle;
     document.querySelector('#todayCard h3').textContent = t.todayTitle;
     document.querySelector('#weekCard h3').textContent = t.weekTitle;
     document.querySelector('#monthCard h3').textContent = t.monthTitle;
     document.querySelector('#careerCard h3').textContent = t.careerTitle;
     
+    // 重新测试按钮
+    const restartBtn = document.querySelector('#restartBtn');
+    if (restartBtn) restartBtn.innerHTML = `<span class="restart-icon">↺</span> ${lang === 'zh' ? '再次解读' : 'Read Again'}`;
+    
+    // 返回按钮
+    const backBtn = document.querySelector('#backBtn');
+    if (backBtn) backBtn.innerHTML = `<span class="back-icon">←</span> ${t.historyBack}`;
+    
+    // 加载文字
     const loadingTextEl = document.getElementById('loadingText');
     if (loadingTextEl) {
         loadingTextEl.innerHTML = t.loadingTexts.map(txt => `<span style="display:block;text-align:center;">${txt}</span>`).join('');
     }
     
+    // 历史记录
+    const historyToggle = document.querySelector('#historyToggleBtn span:nth-child(2)');
+    if (historyToggle) historyToggle.textContent = t.historyTitle;
+    
+    const historyClear = document.querySelector('#clearHistoryBtn');
+    if (historyClear) historyClear.textContent = t.historyClear;
+    
+    // 邮件订阅
+    const newsletterCard = document.querySelector('.newsletter-card');
+    if (newsletterCard) {
+        const newsletterTitle = newsletterCard.querySelector('h3');
+        if (newsletterTitle) newsletterTitle.textContent = t.newsletterTitle;
+        
+        const newsletterSubtitle = newsletterCard.querySelector('.newsletter-subtitle');
+        if (newsletterSubtitle) newsletterSubtitle.textContent = t.newsletterSubtitle;
+        
+        const newsletterInput = document.getElementById('newsletterEmail');
+        if (newsletterInput) newsletterInput.placeholder = t.newsletterPlaceholder;
+        
+        const newsletterBtn = newsletterCard.querySelector('.newsletter-btn span:first-child');
+        if (newsletterBtn) newsletterBtn.textContent = t.newsletterBtn;
+        
+        const newsletterNote = newsletterCard.querySelector('.newsletter-note');
+        if (newsletterNote) newsletterNote.textContent = t.newsletterNote;
+    }
+    
+    // 捐赠
+    const donateCard = document.querySelector('.donate-card');
+    if (donateCard) {
+        const donateTitle = donateCard.querySelector('.donate-header h3');
+        if (donateTitle) donateTitle.textContent = t.donateTitle;
+        
+        const donateSubtitle = donateCard.querySelector('.donate-subtitle');
+        if (donateSubtitle) donateSubtitle.textContent = t.donateSubtitle;
+        
+        const donateLabel = donateCard.querySelector('.wallet-label');
+        if (donateLabel) donateLabel.textContent = t.donateLabel;
+        
+        const donateNote = donateCard.querySelector('.donate-note');
+        if (donateNote) donateNote.textContent = t.donateNote;
+    }
+    
+    // 保存语言设置
     localStorage.setItem('mystic_lang', lang);
 }
 
