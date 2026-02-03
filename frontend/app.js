@@ -524,6 +524,90 @@ if (copyBtn) {
     });
 }
 
+// ========== 历史记录 ==========
+function saveReadingHistory(record) {
+    let history = JSON.parse(localStorage.getItem('mystic_history') || '[]');
+    history.unshift(record);
+    if (history.length > 10) history = history.slice(0, 10);
+    localStorage.setItem('mystic_history', JSON.stringify(history));
+}
+
+function getReadingHistory() {
+    return JSON.parse(localStorage.getItem('mystic_history') || '[]');
+}
+
+function clearReadingHistory() {
+    localStorage.removeItem('mystic_history');
+    renderHistory();
+    updateHistoryCount();
+}
+
+// ========== 历史记录 UI ==========
+function toggleHistory() {
+    const panel = document.getElementById('historyPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    updateHistoryCount();
+    renderHistory();
+}
+
+function renderHistory() {
+    const historyList = document.getElementById('historyList');
+    const history = getReadingHistory();
+    
+    if (history.length === 0) {
+        historyList.innerHTML = '<p class="empty-history">No readings yet</p>';
+        return;
+    }
+    
+    historyList.innerHTML = history.map((item, index) => {
+        const date = new Date(item.date);
+        const dateStr = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const preview = item.reading.replace(/<[^>]*>/g, '').substring(0, 100);
+        
+        return `
+            <div class="history-item" onclick="viewHistoryItem(${index})">
+                <div class="history-item-header">
+                    <span class="history-item-name">${escapeHtml(item.name)}</span>
+                    <span class="history-item-date">${dateStr}</span>
+                </div>
+                <span class="history-item-zodiac">${item.zodiac}</span>
+                <p class="history-item-preview">${preview}...</p>
+            </div>
+        `;
+    }).join('');
+}
+
+function viewHistoryItem(index) {
+    const history = getReadingHistory();
+    if (history[index]) {
+        const item = history[index];
+        // 显示历史记录的解读内容
+        showResults(item.reading);
+        // 隐藏历史记录面板
+        document.getElementById('historyPanel').style.display = 'none';
+        // 显示返回按钮
+        document.getElementById('backBtn').style.display = 'flex';
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateHistoryCount() {
+    const history = getReadingHistory();
+    const countEl = document.getElementById('historyCount');
+    if (countEl) countEl.textContent = history.length;
+}
+
 // ========== 初始化 ==========
 document.addEventListener('DOMContentLoaded', function() {
     createStars();
@@ -549,6 +633,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     updateHistoryCount();
+    
+    // 返回按钮事件
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            // 隐藏返回按钮
+            this.style.display = 'none';
+            // 打开历史记录面板
+            toggleHistory();
+        });
+    }
     
     // 语言切换初始化
     const savedLang = localStorage.getItem('mystic_lang') || 'en';
