@@ -235,17 +235,46 @@ function showResults(aiReading) {
     }, 600);
     
     if (aiReading) {
-        // 显示所有内容到性格分析卡片
-        document.getElementById('personalityContent').innerHTML = aiReading;
-        // 其他卡片显示占位提示
-        document.getElementById('todayContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
-        document.getElementById('weekContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
-        document.getElementById('monthContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
-        document.getElementById('careerContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
+        // 解析内容并分别放到各个卡片
+        const parts = parseReadingContent(aiReading);
+        document.getElementById('personalityContent').innerHTML = parts.personality || aiReading;
+        document.getElementById('todayContent').innerHTML = parts.today || '';
+        document.getElementById('weekContent').innerHTML = parts.week || '';
+        document.getElementById('monthContent').innerHTML = parts.month || '';
+        document.getElementById('careerContent').innerHTML = parts.career || '';
     } else {
         fillDefaultResults();
     }
     animateResultCards();
+}
+
+// ========== 解析解读内容 ==========
+function parseReadingContent(text) {
+    if (!text) return {};
+    
+    // 尝试按模式匹配内容
+    const patterns = {
+        personality: /性格分析[:：\s]*([\s\S]*?)(今日运势|本周运势|本月运势|事业|$)/i,
+        today: /今日运势[:：\s]*([\s\S]*?)(性格分析|本周运势|本月运势|事业|$)/i,
+        week: /本周运势[:：\s]*([\s\S]*?)(性格分析|今日运势|本月运势|事业|$)/i,
+        month: /本月运势[:：\s]*([\s\S]*?)(性格分析|今日运势|本周运势|事业|$)/i,
+        career: /事业.*?财运[:：\s]*([\s\S]*?)(性格分析|今日运势|本周运势|本月运势|$)/i
+    };
+    
+    const result = {};
+    for (const key in patterns) {
+        const match = text.match(patterns[key]);
+        if (match && match[1]) {
+            result[key] = match[1].trim();
+        }
+    }
+    
+    // 如果解析失败，返回原始文本到性格分析
+    if (Object.keys(result).length === 0) {
+        result.personality = text;
+    }
+    
+    return result;
 }
 
 // ========== 默认结果 ==========
