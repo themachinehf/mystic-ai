@@ -568,42 +568,6 @@ body {
     40% { transform: scale(1); opacity: 1; }
 }
 
-/* ========== 流式指示器 ========== */
-.streaming-indicator {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    font-style: italic;
-    text-align: center;
-    padding: 20px;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-}
-
-/* ========== 流式内容样式 ========== */
-.result-card .card-content {
-    line-height: 1.8;
-}
-
-.result-card .card-content p {
-    margin-bottom: 12px;
-}
-
-.result-card .card-content p:last-child {
-    margin-bottom: 0;
-}
-
-.result-card .card-content strong {
-    color: var(--primary);
-}
-
-.result-card .card-content br {
-    line-height: 2;
-}
-
 /* ========== 塔罗牌展示 ========== */
 .tarot-reveal {
     text-align: center;

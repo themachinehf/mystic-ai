@@ -239,26 +239,8 @@ function animateResultCards() {
     });
 }
 
-// ========== 格式化解读内容 ==========
-function formatReadingContent(text) {
-    // 将纯文本转换为 HTML 格式
-    let html = text
-        .replace(/^#+\s*/gm, '')  // 移除 markdown 标题
-        .replace(/\n\n/g, '</p><p>')  // 段落
-        .replace(/\n/g, '<br>')  // 换行
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // 粗体
-        .replace(/\*(.*?)\*/g, '<em>$1</em>');  // 斜体
-    
-    // 如果没有段落标签，加一个
-    if (!html.includes('<p>')) {
-        html = '<p>' + html + '</p>';
-    }
-    
-    return html;
-}
-
-// ========== 调用 AI API (流式) ==========
-async function callAIAPIStream(data, onChunk) {
+// ========== 调用 AI API ==========
+async function callAIAPI(data) {
     try {
         const response = await fetch('/api/mystic', {
             method: 'POST',
@@ -272,34 +254,7 @@ async function callAIAPIStream(data, onChunk) {
             throw new Error('API call failed');
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-            
-            for (const line of lines) {
-                if (line.startsWith('data:')) {
-                    try {
-                        const data = JSON.parse(line.slice(5).trim());
-                        if (data.type === 'done') {
-                            return { success: true, done: true };
-                        } else if (data.choices?.[0]?.delta?.content) {
-                            onChunk(data.choices[0].delta.content);
-                        }
-                    } catch (e) {
-                        // 忽略解析错误
-                    }
-                }
-            }
-        }
-        return { success: true, done: true };
+        return await response.json();
     } catch (error) {
         console.error('API Error:', error);
         throw error;
@@ -329,75 +284,28 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
 
     showLoading();
 
-    // 延迟后显示结果容器，但保留加载动画
-    setTimeout(() => {
-        const resultsContainer = document.getElementById('resultsContainer');
-        const footerSection = document.getElementById('footerSection');
-        const loadingContainer = document.getElementById('loadingContainer');
-        const inputCard = document.getElementById('inputCard');
-        const tarotCard = document.getElementById('tarotCard');
+    try {
+        // 调用 AI API
+        const result = await callAIAPI(formData);
         
-        resultsContainer.style.display = 'block';
-        footerSection.style.display = 'block';
-        inputCard.style.display = 'none';
-        
-        // 塔罗牌翻转
-        tarotCard.classList.add('revealed');
-        const tarotSymbols = ['🌟', '🌙', '☀️', '⚡', '🌊', '🔥'];
-        const tarotNames = ['The Star', 'The Moon', 'The Sun', 'Strength', 'Wheel of Fortune', 'Temperance'];
-        const randomIndex = Math.floor(Math.random() * tarotSymbols.length);
-        document.getElementById('tarotImage').textContent = tarotSymbols[randomIndex];
-        document.getElementById('tarotName').textContent = tarotNames[randomIndex];
-        
-        // 显示加载动画区域（带流式指示器）
-        document.getElementById('personalityContent').innerHTML = '<p class="streaming-indicator">✨ Receiving your reading...</p>';
-        document.getElementById('todayContent').innerHTML = '';
-        document.getElementById('weekContent').innerHTML = '';
-        document.getElementById('monthContent').innerHTML = '';
-        document.getElementById('careerContent').innerHTML = '';
-        
-        let fullReading = '';
-        let charIndex = 0;
-        
-        try {
-            // 流式调用 AI API
-            await callAIAPIStream(formData, (chunk) => {
-                fullReading += chunk;
-                charIndex += chunk.length;
-                
-                // 格式化并打字机效果显示
-                const formatted = formatReadingContent(fullReading);
-                document.getElementById('personalityContent').innerHTML = formatted;
-                
-                // 滚动到最新内容
-                const contentEl = document.getElementById('personalityContent');
-                contentEl.scrollTop = contentEl.scrollHeight;
-            });
-            
-            // 流结束后隐藏加载动画，显示完整内容
-            loadingContainer.style.display = 'none';
-            
+        if (result.success && result.reading) {
             // 保存到历史记录
-            if (fullReading) {
-                saveReadingHistory({
-                    name: formData.name,
-                    zodiac: formData.zodiac,
-                    reading: fullReading,
-                    date: new Date().toISOString()
-                });
-                updateHistoryCount();
-            }
-            
-            // 结果卡片入场动画
-            animateResultCards();
-            
-        } catch (error) {
-            console.error('Error:', error);
-            loadingContainer.style.display = 'none';
-            fillDefaultResults();
-            animateResultCards();
+            saveReadingHistory({
+                name: formData.name,
+                zodiac: formData.zodiac,
+                reading: result.reading,
+                date: new Date().toISOString()
+            });
+            // 更新历史记录计数
+            updateHistoryCount();
+            // 显示结果（包含历史记录保存）
+            showResults(result.reading);
         }
-    }, 1500);
+    } catch (error) {
+        console.error('Error:', error);
+        // API 失败时显示默认结果
+        showResults();
+    }
 });
 
 // ========== 重新测试 ==========
@@ -472,22 +380,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化邮件订阅
     initNewsletter();
-    
-    // 历史记录事件（加 null 检查）
-    const historyToggleBtn = document.getElementById('historyToggleBtn');
-    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-    if (historyToggleBtn) {
-        historyToggleBtn.addEventListener('click', toggleHistory);
-    }
-    if (clearHistoryBtn) {
-        clearHistoryBtn.addEventListener('click', function() {
-            if (confirm('Clear all reading history?')) {
-                clearReadingHistory();
-            }
-        });
-    }
-    
-    updateHistoryCount();
 });
 
 // ========== 邮件订阅 ==========
@@ -621,4 +513,21 @@ function updateHistoryCount() {
     document.getElementById('historyCount').textContent = history.length;
 }
 
-})
+// ========== 初始化 ==========
+document.addEventListener('DOMContentLoaded', function() {
+    createStars();
+    createParticles();
+    initYearSelector();
+    initDaySelector();
+    
+    // 历史记录事件
+    document.getElementById('historyToggleBtn').addEventListener('click', toggleHistory);
+    document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+        if (confirm('Clear all reading history?')) {
+            clearReadingHistory();
+        }
+    });
+    
+    updateHistoryCount();
+    console.log('✨ Mystic AI Ready - Version 2.0');
+});

@@ -1,4 +1,4 @@
-// Vercel Serverless Function - Streaming version
+// Vercel Serverless Function
 const https = require('https');
 
 module.exports = async function handler(req, res) {
@@ -16,16 +16,7 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        // 设置 SSE 响应头
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
-        res.flushHeaders();
-
-        // 发送初始消息
-        res.write(`data: {"type":"start"}\n\n`);
-
-        // 调用 MiniMax API - 流式模式
+        // 调用 MiniMax API - 使用正确的端点格式
         const response = await fetch('https://api.minimax.chat/v1/text/chatcompletion_v2', {
             method: 'POST',
             headers: {
@@ -48,50 +39,25 @@ Zodiac: ${zodiac}
 
 Include: 1) Personality analysis, 2) Today's horoscope (career, love, wealth), 3) This week's outlook, 4) This month's fortune. Write in mystical, poetic style.`
                     }
-                ],
-                stream: true
+                ]
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
             console.error('MiniMax API Error:', response.status, errorText);
-            res.write(`data: {"error":"API error: ${response.status}"}\n\n`);
-            res.end();
-            return;
+            throw new Error(`API error: ${response.status} - ${errorText}`);
         }
 
-        // 获取流式响应
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || data.message || data.content;
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-            
-            for (const line of lines) {
-                if (line.startsWith('data:')) {
-                    const data = line.slice(5).trim();
-                    // 过滤心跳和空数据
-                    if (data && data !== '[DONE]') {
-                        res.write(`data: ${data}\n\n`);
-                    }
-                }
-            }
-        }
-
-        // 发送完成消息
-        res.write(`data: {"type":"done"}\n\n`);
-        res.end();
-
+        res.status(200).json({
+            success: true,
+            reading: content
+        });
     } catch (error) {
         console.error('API Error:', error);
-        res.write(`data: {"error":"${error.message}"}\n\n`);
-        res.end();
+        res.status(500).json({ error: 'Failed to generate reading' });
     }
 };
