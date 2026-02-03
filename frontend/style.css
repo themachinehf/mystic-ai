@@ -575,18 +575,33 @@ body {
     font-style: italic;
     text-align: center;
     padding: 20px;
+    animation: pulse 2s ease-in-out infinite;
 }
 
-.streaming-indicator::after {
-    content: '';
-    animation: dots 1.5s steps(4, end) infinite;
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
 }
 
-@keyframes dots {
-    0%, 20% { content: ''; }
-    40% { content: '.'; }
-    60% { content: '..'; }
-    80%, 100% { content: '...'; }
+/* ========== 流式内容样式 ========== */
+.result-card .card-content {
+    line-height: 1.8;
+}
+
+.result-card .card-content p {
+    margin-bottom: 12px;
+}
+
+.result-card .card-content p:last-child {
+    margin-bottom: 0;
+}
+
+.result-card .card-content strong {
+    color: var(--primary);
+}
+
+.result-card .card-content br {
+    line-height: 2;
 }
 
 /* ========== 塔罗牌展示 ========== */

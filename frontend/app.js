@@ -239,6 +239,24 @@ function animateResultCards() {
     });
 }
 
+// ========== 格式化解读内容 ==========
+function formatReadingContent(text) {
+    // 将纯文本转换为 HTML 格式
+    let html = text
+        .replace(/^#+\s*/gm, '')  // 移除 markdown 标题
+        .replace(/\n\n/g, '</p><p>')  // 段落
+        .replace(/\n/g, '<br>')  // 换行
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // 粗体
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');  // 斜体
+    
+    // 如果没有段落标签，加一个
+    if (!html.includes('<p>')) {
+        html = '<p>' + html + '</p>';
+    }
+    
+    return html;
+}
+
 // ========== 调用 AI API (流式) ==========
 async function callAIAPIStream(data, onChunk) {
     try {
@@ -311,63 +329,75 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
 
     showLoading();
 
-    // 先显示结果容器（空的，等待流式数据）
-    const resultsContainer = document.getElementById('resultsContainer');
-    const footerSection = document.getElementById('footerSection');
-    const loadingContainer = document.getElementById('loadingContainer');
-    const inputCard = document.getElementById('inputCard');
-    const tarotCard = document.getElementById('tarotCard');
-    
-    loadingContainer.style.display = 'none';
-    resultsContainer.style.display = 'block';
-    footerSection.style.display = 'block';
-    inputCard.style.display = 'none';
-    
-    // 塔罗牌翻转
-    tarotCard.classList.add('revealed');
-    const tarotSymbols = ['🌟', '🌙', '☀️', '⚡', '🌊', '🔥'];
-    const tarotNames = ['The Star', 'The Moon', 'The Sun', 'Strength', 'Wheel of Fortune', 'Temperance'];
-    const randomIndex = Math.floor(Math.random() * tarotSymbols.length);
-    document.getElementById('tarotImage').textContent = tarotSymbols[randomIndex];
-    document.getElementById('tarotName').textContent = tarotNames[randomIndex];
-    
-    // 清空内容区域
-    document.getElementById('personalityContent').innerHTML = '<p class="streaming-indicator">✨ Receiving your reading...</p>';
-    document.getElementById('todayContent').innerHTML = '';
-    document.getElementById('weekContent').innerHTML = '';
-    document.getElementById('monthContent').innerHTML = '';
-    document.getElementById('careerContent').innerHTML = '';
-    
-    let fullReading = '';
-    
-    try {
-        // 流式调用 AI API
-        await callAIAPIStream(formData, (chunk) => {
-            fullReading += chunk;
-            // 直接显示原始内容，让 CSS 处理格式化
-            document.getElementById('personalityContent').innerHTML = fullReading;
-        });
+    // 延迟后显示结果容器，但保留加载动画
+    setTimeout(() => {
+        const resultsContainer = document.getElementById('resultsContainer');
+        const footerSection = document.getElementById('footerSection');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const inputCard = document.getElementById('inputCard');
+        const tarotCard = document.getElementById('tarotCard');
         
-        // 流结束后保存到历史记录
-        if (fullReading) {
-            saveReadingHistory({
-                name: formData.name,
-                zodiac: formData.zodiac,
-                reading: fullReading,
-                date: new Date().toISOString()
+        resultsContainer.style.display = 'block';
+        footerSection.style.display = 'block';
+        inputCard.style.display = 'none';
+        
+        // 塔罗牌翻转
+        tarotCard.classList.add('revealed');
+        const tarotSymbols = ['🌟', '🌙', '☀️', '⚡', '🌊', '🔥'];
+        const tarotNames = ['The Star', 'The Moon', 'The Sun', 'Strength', 'Wheel of Fortune', 'Temperance'];
+        const randomIndex = Math.floor(Math.random() * tarotSymbols.length);
+        document.getElementById('tarotImage').textContent = tarotSymbols[randomIndex];
+        document.getElementById('tarotName').textContent = tarotNames[randomIndex];
+        
+        // 显示加载动画区域（带流式指示器）
+        document.getElementById('personalityContent').innerHTML = '<p class="streaming-indicator">✨ Receiving your reading...</p>';
+        document.getElementById('todayContent').innerHTML = '';
+        document.getElementById('weekContent').innerHTML = '';
+        document.getElementById('monthContent').innerHTML = '';
+        document.getElementById('careerContent').innerHTML = '';
+        
+        let fullReading = '';
+        let charIndex = 0;
+        
+        try {
+            // 流式调用 AI API
+            await callAIAPIStream(formData, (chunk) => {
+                fullReading += chunk;
+                charIndex += chunk.length;
+                
+                // 格式化并打字机效果显示
+                const formatted = formatReadingContent(fullReading);
+                document.getElementById('personalityContent').innerHTML = formatted;
+                
+                // 滚动到最新内容
+                const contentEl = document.getElementById('personalityContent');
+                contentEl.scrollTop = contentEl.scrollHeight;
             });
-            updateHistoryCount();
+            
+            // 流结束后隐藏加载动画，显示完整内容
+            loadingContainer.style.display = 'none';
+            
+            // 保存到历史记录
+            if (fullReading) {
+                saveReadingHistory({
+                    name: formData.name,
+                    zodiac: formData.zodiac,
+                    reading: fullReading,
+                    date: new Date().toISOString()
+                });
+                updateHistoryCount();
+            }
+            
+            // 结果卡片入场动画
+            animateResultCards();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            loadingContainer.style.display = 'none';
+            fillDefaultResults();
+            animateResultCards();
         }
-        
-        // 结果卡片入场动画
-        animateResultCards();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        // API 失败时显示默认结果
-        fillDefaultResults();
-        animateResultCards();
-    }
+    }, 1500);
 });
 
 // ========== 重新测试 ==========
