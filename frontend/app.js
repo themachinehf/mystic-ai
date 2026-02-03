@@ -114,11 +114,6 @@ function showLoading() {
     
     inputCard.style.display = 'none';
     loadingContainer.style.display = 'block';
-    
-    // 模拟加载时间
-    setTimeout(() => {
-        showResults();
-    }, 3500);
 }
 
 // ========== 显示结果 ==========
