@@ -239,7 +239,7 @@ function animateResultCards() {
     });
 }
 
-// ========== 调用 AI API ==========
+// ========== 调用 AI API (支持流式) ==========
 async function callAIAPI(data) {
     try {
         const response = await fetch('/api/mystic', {
@@ -259,6 +259,72 @@ async function callAIAPI(data) {
         console.error('API Error:', error);
         throw error;
     }
+}
+
+// ========== 流式调用 AI API ==========
+async function callAIAPIStream(data, onChunk) {
+    try {
+        const response = await fetch('/api/mystic', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error('API call failed');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+                if (line.startsWith('data:')) {
+                    try {
+                        const data = JSON.parse(line.slice(5).trim());
+                        if (data.type === 'done') {
+                            return { success: true, done: true };
+                        } else if (data.choices?.[0]?.delta?.content) {
+                            onChunk(data.choices[0].delta.content);
+                        }
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                }
+            }
+        }
+        return { success: true, done: true };
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// ========== 格式化解读内容 ==========
+function formatReadingContent(text) {
+    // 将纯文本转换为 HTML 格式
+    let html = text
+        .replace(/\n\n/g, '</p><p>')  // 段落
+        .replace(/\n/g, '<br>')  // 换行
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // 粗体
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');  // 斜体
+    
+    // 如果没有段落标签，加一个
+    if (!html.includes('<p>')) {
+        html = '<p>' + html + '</p>';
+    }
+    
+    return html;
 }
 
 // ========== 表单提交 ==========
@@ -285,7 +351,7 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
     showLoading();
 
     try {
-        // 调用 AI API
+        // 等待 API 返回完整结果
         const result = await callAIAPI(formData);
         
         if (result.success && result.reading) {
@@ -298,7 +364,7 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
             });
             // 更新历史记录计数
             updateHistoryCount();
-            // 显示结果（包含历史记录保存）
+            // 显示结果
             showResults(result.reading);
         }
     } catch (error) {

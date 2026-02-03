@@ -1,6 +1,4 @@
 // Vercel Serverless Function
-const https = require('https');
-
 module.exports = async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -25,7 +23,7 @@ module.exports = async function handler(req, res) {
             },
             body: JSON.stringify({
                 model: 'MiniMax-M2.1',
-                tokens_to_generate: 2000,
+                tokens_to_generate: 1500,  // 减少 tokens 让返回更快
                 messages: [
                     {
                         role: 'user',
@@ -37,7 +35,7 @@ Birth Date: ${birthDate}
 Birth Time (Chinese): ${birthTime}
 Zodiac: ${zodiac}
 
-Include: 1) Personality analysis, 2) Today's horoscope (career, love, wealth), 3) This week's outlook, 4) This month's fortune. Write in mystical, poetic style.`
+Include: 1) Personality analysis, 2) Today's horoscope (career, love, wealth), 3) This week's outlook, 4) This month's fortune. Write in mystical, poetic style. Keep it concise.`
                     }
                 ]
             })
