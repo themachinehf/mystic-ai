@@ -1,3 +1,91 @@
+// ========== 语言切换 ==========
+let currentLang = 'en';
+
+const translations = {
+    en: {
+        title: 'Enter Your Information',
+        nameLabel: 'Your Name',
+        namePlaceholder: 'Enter your name',
+        genderLabel: 'Gender',
+        male: 'Male',
+        female: 'Female',
+        birthDateLabel: 'Date of Birth',
+        year: 'Year',
+        month: 'Month',
+        day: 'Day',
+        zodiacLabel: 'Zodiac',
+        birthTimeLabel: 'Birth Hour (Chinese)',
+        submitBtn: 'Reveal My Fortune',
+        personalityTitle: 'Personality Analysis',
+        todayTitle: "Today's Horoscope",
+        weekTitle: 'This Week',
+        monthTitle: 'This Month',
+        careerTitle: 'Career · Love · Wealth',
+        loadingTexts: ['The stars are aligning...', 'Consulting the ancient wisdom...', 'Reading your celestial chart...', 'Weaving your fate...']
+    },
+    zh: {
+        title: '填写您的信息',
+        nameLabel: '您的姓名',
+        namePlaceholder: '请输入姓名',
+        genderLabel: '性别',
+        male: '男',
+        female: '女',
+        birthDateLabel: '出生日期',
+        year: '年',
+        month: '月',
+        day: '日',
+        zodiacLabel: '星座',
+        birthTimeLabel: '出生时辰',
+        submitBtn: '揭示命运',
+        personalityTitle: '性格分析',
+        todayTitle: '今日运势',
+        weekTitle: '本周运势',
+        monthTitle: '本月运势',
+        careerTitle: '事业 · 爱情 · 财运',
+        loadingTexts: ['星辰正在排列...', '探寻古老智慧...', '解读你的星盘...', '编织你的命运...']
+    }
+};
+
+function switchLanguage(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+    
+    // 更新按钮状态
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    
+    // 更新表单文本
+    document.querySelector('.section-title').textContent = t.title;
+    document.querySelector('label[for="name"]').textContent = t.nameLabel;
+    document.getElementById('name').placeholder = t.namePlaceholder;
+    document.querySelectorAll('.form-group label')[0].nextElementSibling.querySelector('label').textContent = t.genderLabel;
+    
+    // 更新性别选项
+    const genderBtns = document.querySelectorAll('.gender-btn span:last-child');
+    if (genderBtns.length >= 2) {
+        genderBtns[0].textContent = t.male;
+        genderBtns[1].textContent = t.female;
+    }
+    
+    // 更新结果卡片标题
+    document.querySelector('#personalityCard h3').textContent = t.personalityTitle;
+    document.querySelector('#todayCard h3').textContent = t.todayTitle;
+    document.querySelector('#weekCard h3').textContent = t.weekTitle;
+    document.querySelector('#monthCard h3').textContent = t.monthTitle;
+    document.querySelector('#careerCard h3').textContent = t.careerTitle;
+    
+    // 更新加载文字
+    const loadingTexts = t.loadingTexts;
+    const loadingTextEl = document.getElementById('loadingText');
+    if (loadingTextEl) {
+        loadingTextEl.innerHTML = loadingTexts.map(txt => `<span style="display:block;text-align:center;">${txt}</span>`).join('');
+    }
+    
+    // 保存语言设置
+    localStorage.setItem('mystic_lang', lang);
+}
+
 // ========== 创建星星背景 ==========
 function createStars() {
     const container = document.getElementById('stars');
@@ -446,154 +534,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化邮件订阅
     initNewsletter();
-});
-
-// ========== 邮件订阅 ==========
-function initNewsletter() {
-    const form = document.getElementById('newsletterForm');
-    if (!form) return;
     
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const email = document.getElementById('newsletterEmail').value;
-        const btn = form.querySelector('.newsletter-btn');
-        
-        if (!email) return;
-        
-        // 禁用按钮
-        btn.disabled = true;
-        btn.innerHTML = '<span>Subscribing...</span>';
-        
-        // 模拟订阅（实际应该发送到后端）
-        try {
-            // 这里可以添加实际的 API 调用
-            // await fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email }) });
-            
-            // 模拟延迟
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // 显示成功
-            const card = document.querySelector('.newsletter-card');
-            card.classList.add('success');
-            
-            // 保存到 localStorage
-            saveEmail(email);
-            
-            console.log('📧 Email subscribed:', email);
-        } catch (error) {
-            console.error('Subscription error:', error);
-            btn.disabled = false;
-            btn.innerHTML = '<span>Subscribe</span><span class="btn-icon">→</span>';
-        }
-    });
-}
-
-function saveEmail(email) {
-    let emails = JSON.parse(localStorage.getItem('mystic_subscribers') || '[]');
-    if (!emails.includes(email)) {
-        emails.push(email);
-        localStorage.setItem('mystic_subscribers', JSON.stringify(emails));
+    // 历史记录事件（加 null 检查）
+    const historyToggleBtn = document.getElementById('historyToggleBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    if (historyToggleBtn) {
+        historyToggleBtn.addEventListener('click', toggleHistory);
     }
-}
-
-// ========== 历史记录 ==========
-function saveReadingHistory(record) {
-    let history = JSON.parse(localStorage.getItem('mystic_history') || '[]');
-    history.unshift(record);
-    if (history.length > 10) history = history.slice(0, 10);
-    localStorage.setItem('mystic_history', JSON.stringify(history));
-}
-
-function getReadingHistory() {
-    return JSON.parse(localStorage.getItem('mystic_history') || '[]');
-}
-
-function clearReadingHistory() {
-    localStorage.removeItem('mystic_history');
-    renderHistory();
-    updateHistoryCount();
-}
-
-// ========== 历史记录 UI ==========
-function toggleHistory() {
-    const panel = document.getElementById('historyPanel');
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    updateHistoryCount();
-    renderHistory();
-}
-
-function renderHistory() {
-    const historyList = document.getElementById('historyList');
-    const history = getReadingHistory();
-    
-    if (history.length === 0) {
-        historyList.innerHTML = '<p class="empty-history">No readings yet</p>';
-        return;
-    }
-    
-    historyList.innerHTML = history.map((item, index) => {
-        const date = new Date(item.date);
-        const dateStr = date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', function() {
+            if (confirm('Clear all reading history?')) {
+                clearReadingHistory();
+            }
         });
-        // 清理 HTML 标签获取纯文本预览
-        const preview = item.reading.replace(/<[^>]*>/g, '').substring(0, 100);
-        
-        return `
-            <div class="history-item" onclick="viewHistoryItem(${index})">
-                <div class="history-item-header">
-                    <span class="history-item-name">${escapeHtml(item.name)}</span>
-                    <span class="history-item-date">${dateStr}</span>
-                </div>
-                <span class="history-item-zodiac">${item.zodiac}</span>
-                <p class="history-item-preview">${preview}...</p>
-            </div>
-        `;
-    }).join('');
-}
-
-function viewHistoryItem(index) {
-    const history = getReadingHistory();
-    if (history[index]) {
-        const item = history[index];
-        // 显示历史记录的解读内容
-        showResults(item.reading);
-        // 隐藏历史记录面板
-        document.getElementById('historyPanel').style.display = 'none';
     }
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function updateHistoryCount() {
-    const history = getReadingHistory();
-    document.getElementById('historyCount').textContent = history.length;
-}
-
-// ========== 初始化 ==========
-document.addEventListener('DOMContentLoaded', function() {
-    createStars();
-    createParticles();
-    initYearSelector();
-    initDaySelector();
-    
-    // 历史记录事件
-    document.getElementById('historyToggleBtn').addEventListener('click', toggleHistory);
-    document.getElementById('clearHistoryBtn').addEventListener('click', function() {
-        if (confirm('Clear all reading history?')) {
-            clearReadingHistory();
-        }
-    });
-    
     updateHistoryCount();
-    console.log('✨ Mystic AI Ready - Version 2.0');
+    
+    // 语言切换初始化
+    const savedLang = localStorage.getItem('mystic_lang') || 'en';
+    switchLanguage(savedLang);
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchLanguage(btn.dataset.lang));
+    });
 });
