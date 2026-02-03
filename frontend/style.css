@@ -568,6 +568,27 @@ body {
     40% { transform: scale(1); opacity: 1; }
 }
 
+/* ========== 流式指示器 ========== */
+.streaming-indicator {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+.streaming-indicator::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+}
+
 /* ========== 塔罗牌展示 ========== */
 .tarot-reveal {
     text-align: center;

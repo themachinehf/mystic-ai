@@ -239,8 +239,8 @@ function animateResultCards() {
     });
 }
 
-// ========== 调用 AI API ==========
-async function callAIAPI(data) {
+// ========== 调用 AI API (流式) ==========
+async function callAIAPIStream(data, onChunk) {
     try {
         const response = await fetch('/api/mystic', {
             method: 'POST',
@@ -254,7 +254,34 @@ async function callAIAPI(data) {
             throw new Error('API call failed');
         }
 
-        return await response.json();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+                if (line.startsWith('data:')) {
+                    try {
+                        const data = JSON.parse(line.slice(5).trim());
+                        if (data.type === 'done') {
+                            return { success: true, done: true };
+                        } else if (data.choices?.[0]?.delta?.content) {
+                            onChunk(data.choices[0].delta.content);
+                        }
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                }
+            }
+        }
+        return { success: true, done: true };
     } catch (error) {
         console.error('API Error:', error);
         throw error;
@@ -284,27 +311,62 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
 
     showLoading();
 
+    // 先显示结果容器（空的，等待流式数据）
+    const resultsContainer = document.getElementById('resultsContainer');
+    const footerSection = document.getElementById('footerSection');
+    const loadingContainer = document.getElementById('loadingContainer');
+    const inputCard = document.getElementById('inputCard');
+    const tarotCard = document.getElementById('tarotCard');
+    
+    loadingContainer.style.display = 'none';
+    resultsContainer.style.display = 'block';
+    footerSection.style.display = 'block';
+    inputCard.style.display = 'none';
+    
+    // 塔罗牌翻转
+    tarotCard.classList.add('revealed');
+    const tarotSymbols = ['🌟', '🌙', '☀️', '⚡', '🌊', '🔥'];
+    const tarotNames = ['The Star', 'The Moon', 'The Sun', 'Strength', 'Wheel of Fortune', 'Temperance'];
+    const randomIndex = Math.floor(Math.random() * tarotSymbols.length);
+    document.getElementById('tarotImage').textContent = tarotSymbols[randomIndex];
+    document.getElementById('tarotName').textContent = tarotNames[randomIndex];
+    
+    // 清空内容区域
+    document.getElementById('personalityContent').innerHTML = '<p class="streaming-indicator">✨ Receiving your reading...</p>';
+    document.getElementById('todayContent').innerHTML = '';
+    document.getElementById('weekContent').innerHTML = '';
+    document.getElementById('monthContent').innerHTML = '';
+    document.getElementById('careerContent').innerHTML = '';
+    
+    let fullReading = '';
+    
     try {
-        // 调用 AI API
-        const result = await callAIAPI(formData);
+        // 流式调用 AI API
+        await callAIAPIStream(formData, (chunk) => {
+            fullReading += chunk;
+            // 直接显示原始内容，让 CSS 处理格式化
+            document.getElementById('personalityContent').innerHTML = fullReading;
+        });
         
-        if (result.success && result.reading) {
-            // 保存到历史记录
+        // 流结束后保存到历史记录
+        if (fullReading) {
             saveReadingHistory({
                 name: formData.name,
                 zodiac: formData.zodiac,
-                reading: result.reading,
+                reading: fullReading,
                 date: new Date().toISOString()
             });
-            // 更新历史记录计数
             updateHistoryCount();
-            // 显示结果（包含历史记录保存）
-            showResults(result.reading);
         }
+        
+        // 结果卡片入场动画
+        animateResultCards();
+        
     } catch (error) {
         console.error('Error:', error);
         // API 失败时显示默认结果
-        showResults();
+        fillDefaultResults();
+        animateResultCards();
     }
 });
 
