@@ -51,20 +51,20 @@
 
                     <!-- 性别 -->
                     <div class="form-group">
-                        <label>Gender</label>
+                        <label>性别</label>
                         <div class="gender-selector">
                             <label class="gender-btn">
                                 <input type="radio" name="gender" value="male">
                                 <span class="gender-content">
                                     <span class="gender-icon">♂</span>
-                                    <span>Male</span>
+                                    <span>男</span>
                                 </span>
                             </label>
                             <label class="gender-btn">
                                 <input type="radio" name="gender" value="female">
                                 <span class="gender-content">
                                     <span class="gender-icon">♀</span>
-                                    <span>Female</span>
+                                    <span>女</span>
                                 </span>
                             </label>
                         </div>
@@ -72,45 +72,45 @@
 
                     <!-- 出生日期 -->
                     <div class="form-group">
-                        <label>Date of Birth</label>
+                        <label>出生日期</label>
                         <div class="date-selector">
                             <div class="select-wrapper">
                                 <select id="birthYear" name="birthYear">
-                                    <option value="">Year</option>
+                                    <option value="">年</option>
                                 </select>
                                 <div class="select-glow"></div>
                             </div>
                             <div class="select-wrapper">
                                 <select id="birthMonth" name="birthMonth">
-                                    <option value="">Month</option>
-                                    <option value="01">Jan</option>
-                                    <option value="02">Feb</option>
-                                    <option value="03">Mar</option>
-                                    <option value="04">Apr</option>
-                                    <option value="05">May</option>
-                                    <option value="06">Jun</option>
-                                    <option value="07">Jul</option>
-                                    <option value="08">Aug</option>
-                                    <option value="09">Sep</option>
-                                    <option value="10">Oct</option>
-                                    <option value="11">Nov</option>
-                                    <option value="12">Dec</option>
+                                    <option value="">月</option>
+                                    <option value="01">1月</option>
+                                    <option value="02">2月</option>
+                                    <option value="03">3月</option>
+                                    <option value="04">4月</option>
+                                    <option value="05">5月</option>
+                                    <option value="06">6月</option>
+                                    <option value="07">7月</option>
+                                    <option value="08">8月</option>
+                                    <option value="09">9月</option>
+                                    <option value="10">10月</option>
+                                    <option value="11">11月</option>
+                                    <option value="12">12月</option>
                                 </select>
                             </div>
                             <div class="select-wrapper">
                                 <select id="birthDay" name="birthDay">
-                                    <option value="">Day</option>
+                                    <option value="">日</option>
                                 </select>
                             </div>
                         </div>
-                        <p class="zodiac-display">Zodiac: <span id="zodiacDisplay">-</span></p>
+                        <p class="zodiac-display">星座: <span id="zodiacDisplay">-</span></p>
                         <input type="hidden" id="birthDate" name="birthDate">
                         <input type="hidden" id="zodiac" name="zodiac">
                     </div>
 
                     <!-- 出生时辰 -->
                     <div class="form-group">
-                        <label>Birth Hour (Chinese)</label>
+                        <label>出生时辰</label>
                         <div class="select-wrapper full-width">
                             <select id="birthTime" name="birthTime">
                                 <option value="子">子 Zi (23:00-01:00)</option>
@@ -134,7 +134,7 @@
                     <button type="submit" class="submit-btn" id="submitBtn">
                         <span class="btn-bg"></span>
                         <span class="btn-text">
-                            <span>Reveal My Fortune</span>
+                            <span>揭示命运</span>
                             <span class="btn-icon">✦</span>
                         </span>
                         <span class="btn-particles"></span>
@@ -223,7 +223,7 @@
                     <div class="result-card wide" id="careerCard">
                         <div class="card-header">
                             <span class="card-icon">◆</span>
-                            <h3>Career · Love · Wealth</h3>
+                            <h3>事业 · 爱情 · 财运</h3>
                         </div>
                         <div class="card-content" id="careerContent"></div>
                     </div>
@@ -232,13 +232,13 @@
                 <!-- 重新测试 -->
                 <button class="restart-btn" id="restartBtn">
                     <span class="restart-icon">↺</span>
-                    Read Again
+                    再次解读
                 </button>
                 
                 <!-- 返回按钮（从历史记录查看时显示） -->
                 <button class="back-btn" id="backBtn" style="display: none;">
                     <span class="back-icon">←</span>
-                    Back to History
+                    返回历史
                 </button>
             </div>
         </main>
@@ -247,16 +247,16 @@
         <section class="history-section" id="historySection">
             <button class="history-toggle-btn" id="historyToggleBtn">
                 <span class="history-icon">📜</span>
-                <span>Reading History</span>
+                <span>历史记录</span>
                 <span class="history-count" id="historyCount">0</span>
             </button>
             <div class="history-panel" id="historyPanel" style="display: none;">
                 <div class="history-header">
-                    <h3>Your Readings</h3>
-                    <button class="clear-history-btn" id="clearHistoryBtn">Clear All</button>
+                    <h3>您的解读</h3>
+                    <button class="clear-history-btn" id="clearHistoryBtn">清空</button>
                 </div>
                 <div class="history-list" id="historyList">
-                    <p class="empty-history">No readings yet</p>
+                    <p class="empty-history">暂无解读记录</p>
                 </div>
             </div>
         </section>
@@ -267,8 +267,8 @@
                 <div class="newsletter-icon-wrapper">
                     <span class="newsletter-icon">✉️</span>
                 </div>
-                <h3>Stay Updated</h3>
-                <p class="newsletter-subtitle">Get notified about new readings and features</p>
+                <h3>订阅更新</h3>
+                <p class="newsletter-subtitle">获取最新解读通知</p>
                 
                 <form id="newsletterForm" class="newsletter-form">
                     <div class="input-wrapper">
@@ -276,11 +276,11 @@
                         <div class="input-glow"></div>
                     </div>
                     <button type="submit" class="newsletter-btn">
-                        <span>Subscribe</span>
+                        <span>订阅</span>
                         <span class="btn-icon">→</span>
                     </button>
                 </form>
-                <p class="newsletter-note">We respect your privacy. Unsubscribe anytime.</p>
+                <p class="newsletter-note">我们尊重您的隐私，随时可取消订阅</p>
             </div>
         </section>
 
@@ -291,21 +291,21 @@
                     <div class="donate-icon-wrapper">
                         <span class="donate-icon">♦</span>
                     </div>
-                    <h3>Support This Reading</h3>
-                    <p class="donate-subtitle">If this resonated with you, consider a tip</p>
+                    <h3>支持我们</h3>
+                    <p class="donate-subtitle">如果对您有启发，欢迎打赏</p>
                 </div>
                 
                 <div class="wallet-display">
-                    <div class="wallet-label">Ethereum (ERC-20)</div>
+                    <div class="wallet-label">ETH (ERC-20)</div>
                     <div class="wallet-address-wrapper">
                         <code class="wallet-address">0x44B82c81d3f5c712ACFaf3C6e760779A41b2ACE6</code>
-                        <button class="copy-btn" id="copyBtn" title="Click to copy">
+                        <button class="copy-btn" id="copyBtn" title="点击复制">
                             <span class="copy-icon">📋</span>
                         </button>
                     </div>
                 </div>
                 
-                <p class="donate-note">Your support keeps the stars aligned ✨</p>
+                <p class="donate-note">您的支持是我们前进的动力 ✨</p>
             </div>
         </footer>
     </div>
