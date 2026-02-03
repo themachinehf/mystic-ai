@@ -114,6 +114,19 @@ function showLoading() {
     
     inputCard.style.display = 'none';
     loadingContainer.style.display = 'block';
+    
+    // 旋转加载文字
+    const loadingTexts = [
+        'The stars are aligning...',
+        'Consulting the ancient wisdom...',
+        'Reading your celestial chart...',
+        'Weaving your fate...'
+    ];
+    const loadingTextEl = document.getElementById('loadingText');
+    if (loadingTextEl) {
+        loadingTextEl.innerHTML = loadingTexts.map(t => `<span style="display:block;text-align:center;">${t}</span>`).join('');
+        loadingTextEl.classList.add('loading-text-rotating');
+    }
 }
 
 // ========== 显示结果 ==========
@@ -283,6 +296,8 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
                 reading: result.reading,
                 date: new Date().toISOString()
             });
+            // 更新历史记录计数
+            updateHistoryCount();
             // 显示结果（包含历史记录保存）
             showResults(result.reading);
         }
@@ -438,6 +453,7 @@ function clearReadingHistory() {
 function toggleHistory() {
     const panel = document.getElementById('historyPanel');
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    updateHistoryCount();
     renderHistory();
 }
 
