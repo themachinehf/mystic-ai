@@ -622,4 +622,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateHistoryCount();
     console.log('✨ Mystic AI Ready - Version 2.0');
-});
+}
+
+// 文件结束
