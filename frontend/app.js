@@ -105,10 +105,11 @@ function switchLanguage(lang) {
     const genderLabel = document.querySelectorAll('.form-group label')[1];
     if (genderLabel) genderLabel.textContent = t.genderLabel;
     
-    const genderBtns = document.querySelectorAll('.gender-btn span:last-child');
-    if (genderBtns.length >= 2) {
-        genderBtns[0].textContent = t.male;
-        genderBtns[1].textContent = t.female;
+    // 性别选项
+    const genderLabels = document.querySelectorAll('.gender-btn .gender-content span:last-child');
+    if (genderLabels.length >= 2) {
+        genderLabels[0].textContent = t.male;
+        genderLabels[1].textContent = t.female;
     }
     
     // 出生日期
