@@ -419,8 +419,8 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
     showLoading();
 
     try {
-        // 等待 API 返回完整结果
-        const result = await callAIAPI(formData);
+        // 等待 API 返回完整结果（传递当前语言）
+        const result = await callAIAPI({ ...formData, lang: currentLang });
         
         if (result.success && result.reading) {
             // 保存到历史记录
@@ -428,7 +428,8 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
                 name: formData.name,
                 zodiac: formData.zodiac,
                 reading: result.reading,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                lang: currentLang
             });
             // 更新历史记录计数
             updateHistoryCount();
