@@ -235,7 +235,13 @@ function showResults(aiReading) {
     }, 600);
     
     if (aiReading) {
+        // 显示所有内容到性格分析卡片
         document.getElementById('personalityContent').innerHTML = aiReading;
+        // 其他卡片显示占位提示
+        document.getElementById('todayContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
+        document.getElementById('weekContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
+        document.getElementById('monthContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
+        document.getElementById('careerContent').innerHTML = '<p style="color: var(--text-secondary); font-style: italic;">✨ ' + (currentLang === 'zh' ? '完整解读请查看上方' : 'Full reading above') + '</p>';
     } else {
         fillDefaultResults();
     }
@@ -490,6 +496,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 返回按钮
     const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            this.style.display = 'none';
+            toggleHistory();
+        });
+    }
     
     // 初始化月份和日选项
     const monthSelect = document.getElementById('birthMonth');
