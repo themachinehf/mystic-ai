@@ -1,4 +1,4 @@
-// Vercel Serverless Function - 优化版
+// Vercel Serverless Function - 修复缓存问题
 const crypto = require('crypto');
 
 module.exports = async function handler(req, res) {
@@ -8,23 +8,23 @@ module.exports = async function handler(req, res) {
 
     const { name, gender, birthDate, birthTime, zodiac, lang } = req.body;
 
-    // MiniMax API 配置
     const API_KEY = process.env.MINIMAX_API_KEY || '';
     if (!API_KEY) {
         return res.status(500).json({ error: 'API key not configured' });
     }
 
-    // 生成请求缓存 key（相同输入返回缓存结果）
+    // 修复：lang 参数必须参与缓存 key
     const cacheKey = crypto.createHash('md5')
         .update(`${name}${gender}${birthDate}${birthTime}${zodiac}${lang}`)
         .digest('hex');
     
-    // 简单内存缓存（生产环境可用 Redis）
-    const cache = new Map();
-    const cacheExpiry = 5 * 60 * 1000; // 5分钟缓存
+    // 缓存池（全局）
+    if (!global.mysticCache) global.mysticCache = new Map();
+    const cache = global.mysticCache;
+    const cacheExpiry = 10 * 60 * 1000; // 10分钟
     
-    // 检查缓存
-    if (cache.has(cacheKey)) {
+    // 修复：如果 lang=zh 或 noCache=true，跳过缓存
+    if (lang !== 'zh' && !req.query.noCache && cache.has(cacheKey)) {
         const cached = cache.get(cacheKey);
         if (Date.now() - cached.time < cacheExpiry) {
             console.log('Cache hit:', cacheKey);
@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
         const systemPrompt = isChinese 
             ? `你是专业的塔罗牌占卜师。你的解读风格：
 - 神秘、优雅、富有诗意
-- 使用美好的词汇和意象
+- 使用美好的中文词汇和意象
 - 避免直白的现代用语
 - 让人感到温暖和希望`
             : `You are a professional tarot reader. Your style:
@@ -57,13 +57,13 @@ module.exports = async function handler(req, res) {
 出生时辰：${birthTime}
 星座：${zodiac}
 
-请用神秘、诗意风格撰写，包含：
+请用**神秘、诗意风格的中文**撰写，包含：
 1. 性格分析
 2. 今日运势（事业、爱情、财运），用★★★☆评分
 3. 本周运势分析
 4. 本月运势走向
 
-用优美的散文风格，每段空行分隔。`
+用优美的中文散文风格，每段空行分隔。`
             : `Tarot reading:
 
 Name: ${name}
@@ -80,7 +80,6 @@ Include:
 
 Write in mystical, poetic English.`;
 
-        // 调用 API（带重试）
         let attempts = 0;
         let data;
         const maxAttempts = 2;
@@ -96,24 +95,21 @@ Write in mystical, poetic English.`;
                     },
                     body: JSON.stringify({
                         model: 'MiniMax-M2.1',
-                        tokens_to_generate: 1500, // 优化：减少 tokens
+                        tokens_to_generate: 1500,
                         temperature: 0.7,
                         messages: [
                             { role: 'system', content: systemPrompt },
                             { role: 'user', content: userContent }
                         ]
                     }),
-                    signal: AbortSignal.timeout(30000) // 30秒超时
+                    signal: AbortSignal.timeout(30000)
                 });
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error(`MiniMax API Error (attempt ${attempts}):`, response.status, errorText);
-                    
-                    if (attempts >= maxAttempts) {
-                        throw new Error(`API error: ${response.status}`);
-                    }
-                    await new Promise(r => setTimeout(r, 1000)); // 等待1秒重试
+                    console.error(`MiniMax API Error (${attempts}):`, response.status);
+                    if (attempts >= maxAttempts) throw new Error(`API error: ${response.status}`);
+                    await new Promise(r => setTimeout(r, 1000));
                     continue;
                 }
 
@@ -126,18 +122,18 @@ Write in mystical, poetic English.`;
         }
 
         const content = data.choices?.[0]?.message?.content || data.message || data.content;
-
-        // 保存缓存
         const result = { success: true, reading: content };
-        cache.set(cacheKey, { time: Date.now(), data: result });
-        
-        // 清理旧缓存（最多50条）
-        if (cache.size > 50) {
-            const oldest = [...cache.entries()].sort((a, b) => a[1].time - b[1].time)[0];
-            cache.delete(oldest[0]);
+
+        // 只缓存英文查询
+        if (lang !== 'zh') {
+            cache.set(cacheKey, { time: Date.now(), data: result });
+            if (cache.size > 100) {
+                const oldest = [...cache.entries()].sort((a, b) => a[1].time - b[1].time)[0];
+                cache.delete(oldest[0]);
+            }
         }
 
-        console.log('API success, cache key:', cacheKey);
+        console.log('API success, lang:', lang, 'cached:', lang !== 'zh');
         res.status(200).json(result);
         
     } catch (error) {
