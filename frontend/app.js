@@ -106,6 +106,9 @@ function switchLanguage(lang) {
         loadingTextEl.innerHTML = t.loadingTexts.map(txt => `<span style="display:block;text-align:center;">${txt}</span>`).join('');
     }
     
+    // 更新时辰选择器（根据用户时区）
+    initEarthlyBranchSelector();
+    
     // 保存语言设置
     localStorage.setItem('mystic_lang', lang);
 }
@@ -161,6 +164,110 @@ function initDaySelector() {
         option.textContent = day;
         daySelect.appendChild(option);
     }
+}
+
+// ========== 初始化地支时辰选择器（根据用户时区） ==========
+function initEarthlyBranchSelector() {
+    const timeSelect = document.getElementById('birthTime');
+    if (!timeSelect) return;
+    
+    // 地支及其中文名称
+    const branches = [
+        { char: '子', name: 'Zi', pinyin: '子' },
+        { char: '丑', name: 'Chou', pinyin: '丑' },
+        { char: '寅', name: 'Yin', pinyin: '寅' },
+        { char: '卯', name: 'Mao', pinyin: '卯' },
+        { char: '辰', name: 'Chen', pinyin: '辰' },
+        { char: '巳', name: 'Si', pinyin: '巳' },
+        { char: '午', name: 'Wu', pinyin: '午' },
+        { char: '未', name: 'Wei', pinyin: '未' },
+        { char: '申', name: 'Shen', pinyin: '申' },
+        { char: '酉', name: 'You', pinyin: '酉' },
+        { char: '戌', name: 'Xu', pinyin: '戌' },
+        { char: '亥', name: 'Hai', pinyin: '亥' }
+    ];
+    
+    // 地支对应的北京时间（24小时制）
+    const beijingOffsets = [
+        { start: 23, end: 1 },   // 子时: 23:00-01:00
+        { start: 1, end: 3 },    // 丑时: 01:00-03:00
+        { start: 3, end: 5 },    // 寅时: 03:00-05:00
+        { start: 5, end: 7 },    // 卯时: 05:00-07:00
+        { start: 7, end: 9 },    // 辰时: 07:00-09:00
+        { start: 9, end: 11 },   // 巳时: 09:00-11:00
+        { start: 11, end: 13 },  // 午时: 11:00-13:00
+        { start: 13, end: 15 },  // 未时: 13:00-15:00
+        { start: 15, end: 17 },  // 申时: 15:00-17:00
+        { start: 17, end: 19 },  // 酉时: 17:00-19:00
+        { start: 19, end: 21 },  // 戌时: 19:00-21:00
+        { start: 21, end: 23 }   // 亥时: 21:00-23:00
+    ];
+    
+    // 获取用户时区与北京时间的时差（小时）
+    function getBeijingTimeDiff() {
+        const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        try {
+            // 创建一个北京时间日期
+            const beijingTime = new Date();
+            beijingTime.setHours(12, 0, 0, 0); // 中午12点
+            
+            // 转换为用户时区的时间
+            const userTimeStr = beijingTime.toLocaleString('en-US', { timeZone: userTimeZone });
+            const userTime = new Date(userTimeStr);
+            
+            // 计算差值（小时）
+            const diff = (beijingTime.getTime() - userTime.getTime()) / (1000 * 60 * 60);
+            return diff;
+        } catch (e) {
+            console.warn('Timezone detection failed, defaulting to Beijing:', e);
+            return 0;
+        }
+    }
+    
+    // 将北京时间转换为用户当地时间
+    function convertToUserTime(beijingHour) {
+        const diff = getBeijingTimeDiff();
+        let userHour = beijingHour - diff;
+        
+        // 规范化到 0-23 范围
+        while (userHour < 0) userHour += 24;
+        while (userHour >= 24) userHour -= 24;
+        
+        return userHour;
+    }
+    
+    // 格式化时间显示
+    function formatTime(hour) {
+        const endHour = hour + 2;
+        const startStr = `${hour.toString().padStart(2, '0')}:00`;
+        const endStr = `${endHour.toString().padStart(2, '0')}:00`;
+        return `${startStr}-${endStr}`;
+    }
+    
+    // 清空现有选项
+    timeSelect.innerHTML = '';
+    
+    // 获取当前语言
+    const isChinese = currentLang === 'zh';
+    
+    // 添加选项
+    branches.forEach((branch, index) => {
+        const option = document.createElement('option');
+        const userStartHour = convertToUserTime(beijingOffsets[index].start);
+        const timeDisplay = formatTime(userStartHour);
+        
+        if (isChinese) {
+            option.textContent = `${branch.pinyin} ${branch.char} (${timeDisplay})`;
+        } else {
+            option.textContent = `${branch.char} ${branch.name} (${timeDisplay})`;
+        }
+        option.value = branch.char;
+        timeSelect.appendChild(option);
+    });
+    
+    // 保存原始值用于翻译更新
+    timeSelect.dataset.originalValues = JSON.stringify(branches);
+    timeSelect.dataset.beijingOffsets = JSON.stringify(beijingOffsets);
 }
 
 // ========== 计算星座 ==========
@@ -578,6 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
     createParticles();
     initYearSelector();
     initDaySelector();
+    initEarthlyBranchSelector();
     console.log('✨ Mystic AI Ready - Version 2.0');
     
     // 语言切换初始化
