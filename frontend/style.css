@@ -1532,3 +1532,201 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* ========== 优化 1: 增强卡牌翻转动画 ========== */
+.tarot-card-container {
+    perspective: 1000px;
+    width: 200px;
+    height: 280px;
+    margin: 0 auto 20px;
+}
+
+.tarot-card-face {
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tarot-card-face.back {
+    transform: rotateY(180deg);
+}
+
+.tarot-card-container.flipped .tarot-card-face.front {
+    transform: rotateY(180deg);
+}
+
+.tarot-card-container.flipped .tarot-card-face.back {
+    transform: rotateY(360deg);
+}
+
+/* ========== 优化 2: 分享按钮 ========== */
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 10px;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+}
+
+.share-btn .share-icon {
+    font-size: 16px;
+}
+
+/* ========== 优化 3: 结果卡片入场动画 ========== */
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.results-grid .result-card {
+    animation: slideUpFade 0.5s ease forwards;
+    opacity: 0;
+}
+
+.results-grid .result-card:nth-child(1) { animation-delay: 0.1s; }
+.results-grid .result-card:nth-child(2) { animation-delay: 0.2s; }
+.results-grid .result-card:nth-child(3) { animation-delay: 0.3s; }
+.results-grid .result-card:nth-child(4) { animation-delay: 0.4s; }
+.results-grid .result-card:nth-child(5) { animation-delay: 0.5s; }
+
+/* ========== 优化 4: 历史记录增强 ========== */
+.history-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary);
+    transform: translateX(5px);
+}
+
+.history-item-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 8px;
+    margin-right: 12px;
+}
+
+.history-item-content {
+    flex: 1;
+}
+
+.history-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.history-item-date {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* ========== 优化 5: 按钮悬浮效果 ========== */
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
+}
+
+.restart-btn:hover {
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    transform: translateY(-2px);
+}
+
+/* ========== 优化 6: 响应式卡片网格 ========== */
+@media (max-width: 768px) {
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .result-card.wide {
+        grid-column: 1;
+    }
+    
+    .tarot-card-container {
+        width: 160px;
+        height: 224px;
+    }
+}
+
+/* ========== 优化 7: 加载状态优化 ========== */
+.loading-text-container {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-text {
+    text-align: center;
+    font-size: 16px;
+    color: var(--text-secondary);
+    animation: textFade 2s ease-in-out infinite;
+}
+
+@keyframes textFade {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* ========== 优化 8: Toast 通知 ========== */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-card);
+    border: 1px solid var(--primary);
+    padding: 16px 24px;
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast.success {
+    border-color: #10b981;
+}
+
+.toast.error {
+    border-color: #ef4444;
+}

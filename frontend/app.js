@@ -33,7 +33,8 @@ const i18nData = {
         donateSubtitle: 'If this resonated with you, consider a tip',
         donateLabel: 'Ethereum (ERC-20)',
         donateNote: 'Your support keeps the stars aligned ✨',
-        loadingTexts: ['The stars are aligning...', 'Consulting the ancient wisdom...', 'Reading your celestial chart...', 'Weaving your fate...']
+        loadingTexts: ['The stars are aligning...', 'Consulting the ancient wisdom...', 'Reading your celestial chart...', 'Weaving your fate...'],
+        shareBtn: 'Share Result'
     },
     zh: {
         formTitle: '填写您的信息',
@@ -686,7 +687,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initYearSelector();
     initDaySelector();
     initEarthlyBranchSelector();
-    console.log('✨ Mystic AI Ready - Version 2.0');
+    console.log('✨ Mystic AI Ready - Version 2.1');
+    initEnhancedFeatures();;
     
     // 语言切换初始化
     const savedLang = localStorage.getItem('mystic_lang') || 'en';
@@ -721,3 +723,150 @@ document.addEventListener('DOMContentLoaded', function() {
         daySelect.addEventListener('change', updateZodiac);
     }
 });
+
+// ========== 优化功能: Toast 通知 ==========
+function showToast(message, type = 'default') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    
+    toast.textContent = message;
+    toast.className = 'toast ' + type;
+    
+    // 显示
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // 3秒后隐藏
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ========== 优化功能: 分享结果 ==========
+function initShareButton() {
+    const shareBtn = document.getElementById('shareBtn');
+    const shareContainer = document.getElementById('shareContainer');
+    
+    if (shareContainer) {
+        shareContainer.style.display = 'flex';
+        shareContainer.style.justifyContent = 'center';
+        shareContainer.style.gap = '10px';
+    }
+    
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async () => {
+            const name = document.getElementById('name').value || 'Guest';
+            const tarotName = document.getElementById('tarotName').textContent || 'Mystic Card';
+            
+            const shareText = `✨ Mystic AI Reading for ${name}\n\n🃏 Card: ${tarotName}\n\n🔮 Get your fortune at: mystic-ai-henna.vercel.app`;
+            
+            if (navigator.share) {
+                // 使用原生分享
+                try {
+                    await navigator.share({
+                        title: 'Mystic AI Fortune',
+                        text: shareText,
+                        url: 'https://mystic-ai-henna.vercel.app'
+                    });
+                    showToast('Shared successfully! ✨', 'success');
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        copyToClipboard(shareText);
+                    }
+                }
+            } else {
+                // 复制到剪贴板
+                copyToClipboard(shareText);
+            }
+        });
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard! 📋', 'success');
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
+// ========== 优化功能: 增强历史记录 ==========
+function renderHistoryItem(reading) {
+    const date = new Date(reading.timestamp);
+    const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    return `
+        <div class="history-item" onclick="loadReading('${reading.timestamp}')">
+            <div class="history-item-icon">🃏</div>
+            <div class="history-item-content">
+                <div class="history-item-title">${reading.tarotName || 'Mystic Reading'}</div>
+                <div class="history-item-date">${dateStr}</div>
+            </div>
+        </div>
+    `;
+}
+
+function loadReading(timestamp) {
+    const history = getReadingHistory();
+    const reading = history.find(r => r.timestamp === timestamp);
+    if (!reading) return;
+    
+    // 显示结果
+    document.getElementById('inputCard').style.display = 'none';
+    document.getElementById('loadingContainer').style.display = 'none';
+    document.getElementById('resultsContainer').style.display = 'block';
+    
+    // 填充数据
+    if (reading.tarotName) document.getElementById('tarotName').textContent = reading.tarotName;
+    if (reading.tarotSymbol) document.getElementById('tarotImage').innerHTML = reading.tarotSymbol;
+    
+    // 填充各个卡片内容
+    const sections = ['personality', 'today', 'week', 'month', 'career'];
+    sections.forEach(section => {
+        const el = document.getElementById(section + 'Content');
+        if (el && reading[section]) el.innerHTML = reading[section];
+    });
+    
+    // 显示返回按钮
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) backBtn.style.display = 'inline-flex';
+    
+    // 显示分享按钮
+    initShareButton();
+    
+    // 切换语言
+    if (reading.lang) switchLanguage(reading.lang);
+}
+
+// 修改 initHistoryRendering 使用新样式
+const originalRenderHistoryList = renderHistoryList;
+renderHistoryList = function() {
+    const history = getReadingHistory();
+    const historyList = document.getElementById('historyList');
+    if (!historyList) return;
+    
+    if (history.length === 0) {
+        historyList.innerHTML = '<p class="empty-history" data-i18n="emptyHistory">No readings yet</p>';
+        return;
+    }
+    
+    historyList.innerHTML = history.map(renderHistoryItem).join('');
+};
+
+// ========== 初始化增强功能 ==========
+function initEnhancedFeatures() {
+    // 在结果显示时初始化分享按钮
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.target.id === 'resultsContainer' && 
+                mutation.target.style.display === 'block') {
+                initShareButton();
+            }
+        });
+    });
+    
+    const resultsContainer = document.getElementById('resultsContainer');
+    if (resultsContainer) {
+        observer.observe(resultsContainer, { attributes: true, attributeFilter: ['style'] });
+    }
+}
+
+// 在 DOMContentLoaded 中调用
+console.log('✨ Mystic AI Ready - Version 2.1');
