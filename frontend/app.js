@@ -34,7 +34,9 @@ const i18nData = {
         donateLabel: 'Ethereum (ERC-20)',
         donateNote: 'Your support keeps the stars aligned ✨',
         loadingTexts: ['The stars are aligning...', 'Consulting the ancient wisdom...', 'Reading your celestial chart...', 'Weaving your fate...'],
-        shareBtn: 'Share Result'
+        shareBtn: 'Share Result',
+        networkError: 'Network error. Please try again.',
+        tryAgain: 'Try Again'
     },
     zh: {
         formTitle: '填写您的信息',
@@ -542,12 +544,36 @@ document.getElementById('mysticForm').addEventListener('submit', async function(
             saveReadingHistory({ name: formData.name, zodiac: formData.zodiac, reading: result.reading, date: new Date().toISOString(), lang: currentLang });
             updateHistoryCount();
             showResults(result.reading);
+        } else {
+            showError(t.networkError || 'Failed to get reading. Please try again.');
         }
     } catch (error) {
         console.error('Error:', error);
-        showResults();
+        showError(t.networkError || 'Connection error. Please check your network.');
     }
 });
+
+function showError(message) {
+    hideLoading();
+    const t = translations[currentLang] || translations.en;
+    const resultsContainer = document.getElementById('resultsContainer');
+    const loadingContainer = document.getElementById('loadingContainer');
+    
+    if (loadingContainer) loadingContainer.style.display = 'none';
+    
+    resultsContainer.innerHTML = `
+        <div class="error-container" style="text-align:center;padding:40px 20px;">
+            <div style="font-size:3rem;margin-bottom:20px;">⚠️</div>
+            <h3 style="color:#ef4444;margin-bottom:12px;">${t.error || 'Error'}</h3>
+            <p style="color:var(--text-secondary);margin-bottom:24px;">${message}</p>
+            <button onclick="location.reload()" class="submit-btn" style="max-width:200px;margin:0 auto;">
+                ${t.tryAgain || 'Try Again'}
+            </button>
+        </div>
+    `;
+    resultsContainer.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // ========== 重新测试 ==========
 document.getElementById('restartBtn').addEventListener('click', function() {
