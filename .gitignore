@@ -36,3 +36,4 @@ npm-debug.log*
 # Generated files
 generate-qr.js
 donate-qr.png
+.vercel
